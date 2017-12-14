@@ -2,6 +2,9 @@
 Your Raspberry Pi running code on the IBM Q quantum processors via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat!
 
 This code is specifically designed to run on a Raspberry Pi 3 with the SenseHat installed. The 8x8 array on the SenseHat is used to display the results corresponding to the IBM 5-qubit "bowtie" quantum processor.
+<br/><img src='ibm_qubit_cpu.jpg' width='200' alt='IBM 5 qubit processor'><br/> 
+(It's called a bowtie because of the arrangement of the 5 qubits, and the particular ways they can interconnect via entanglement.
+
 Actual calculations are run using the quantum simulator backend for the quantum processor, to avoid overwhelming the physical processor in the IBM Q lab.
 
 There are two versions of the code. 
