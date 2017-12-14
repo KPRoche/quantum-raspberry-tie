@@ -15,8 +15,10 @@ The system will pause for 10 seconds, then run the code again to display a new r
 In each cycle, the status of the backend is checked and printed to the console, as are experiment ID, then the probability value and measured bit pattern of the most-frequent result wich is used for the display
 
 # QuantumBowtiePing.py
-This version pings the IBM Quantum Experience site before initializing the API to make sure the site is responding. If it does not, the program will exit.
-If it successfully connects, in each cycle it pings again before it confirms the backend status and (presuming the backend is not busy) sending the OPENQASM code. If there no good response to the ping, or the backend responds as busy, it waits 10 seconds and tries again, begining again with that initial ping to the website.
+This version is a little "smarter" and tries to test its connection to the website before making requests. It's designed to cope more gracefully with what happens if you are running on batteries and your Raspberry Pi switches wireless access points as you move around, or are in a somewhat glitchy wifi environment.
+It pings the IBM Quantum Experience site before initializing the API to make sure the site is responding. If the site does not respond at first, the program will exit.
+
+If it successfully connects, in each cycle it pings again before it confirms the backend status and (presuming the backend is not busy) sending the OPENQASM code. If there no good response to the ping, or the backend responds as busy, it waits 10 seconds and tries again, begining again with that initial ping to the website. Other than that, it is doing exactly the same thing as the simpler version.
 
 Both versions run the display by spawning a second thread. As long as the variable "thinQing" is True, the rainbow cycle is run. If it is False, the value of the string "maxpattern" is translated into the red and blue qubit display.
 
