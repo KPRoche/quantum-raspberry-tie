@@ -1,4 +1,4 @@
-# quantum-raspberry
+# quantum-raspberry-tie
 Raspberry Pi running code on the IBM Q quantum processors via Python 3. Results displayed courtesy of the 8x8 LED array on a SenseHat
 
 This code is specifically designed to run on a Raspberry Pi 3 with the SenseHat installed. The 8x8 array on the SenseHat is used to display the results corresponding to the IBM 5-qubit "bowtie" quantum processor.
@@ -16,7 +16,7 @@ In each cycle, the status of the backend is checked and printed to the console, 
 
 # QuantumBowtiePing.py
 This version pings the IBM Quantum Experience site before initializing the API to make sure the site is responding. If it does not, the program will exit.
-If it successfully connects, in each cycle it pings again before it confirms the backend status and (presuming the backend is not busy) sending the OPENQASM code. If there no good response to the ping, or the backend responds as busy, it waits 10 seconds and tries again by pinging.
+If it successfully connects, in each cycle it pings again before it confirms the backend status and (presuming the backend is not busy) sending the OPENQASM code. If there no good response to the ping, or the backend responds as busy, it waits 10 seconds and tries again, begining again with that initial ping to the website.
 
 Both versions run the display by spawning a second thread. As long as the variable "thinQing" is True, the rainbow cycle is run. If it is False, the value of the string "maxpattern" is translated into the red and blue qubit display.
 
@@ -37,3 +37,6 @@ The program being run on the processor is very simple. 5 qubits are initialized 
      measure q[2] -> c[2];
      measure q[3] -> c[3];
      measure q[4] -> c[4];
+     
+# A Couple of other notes:
+The call to api.run_experiment() generates a datetime-based name for each experiment. This is to make sure the backend runs the code rather than looking up results for that experiment name. (At one point, an early version of the code with a static experiment name in the call kept returning exactly the same result every time, because once it had run once, the API kept returning the values from the first time the code was run.
