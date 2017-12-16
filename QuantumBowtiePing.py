@@ -1,20 +1,7 @@
-#--------------------------------------------------------------------
-#
-#            QuantumBowtiePing.py
-#             by KPRoche (Kevin Roche)
-#             first uploaded December 14, 2017
-#
-#             Run a simple OPENQASM experiment on the IBM Quantum Experience processor
-#               and display the results on the 8x8 LED array on a SenseHat
-#             Pings the webserver before connecting and running the experiment
-#               to allow more graceful handling of connectivity issues.
-#
-#---------------------------------------------------------------------
 import requests
 import sys
 import datetime
 import socket
-import subprocess
 from threading import Thread
 from colorsys import hsv_to_rgb
 from time import process_time
@@ -85,7 +72,6 @@ def startAPI():
 # pixel coordinates to draw the bowtie qubits
 ibm_qx5 = [[40,41,48,49],[8,9,16,17],[28,29,36,37],[6,7,14,15],[54,55,62,63]]
 
-bowtie = [6,7,8,9,14,15,16,17,28,29,36,37,54,55,40,41,48,49,62,63]
 
 # setting up the 8x8=64 pixel variables
 
@@ -142,7 +128,7 @@ def blinky(time=10,experimentID=''):
       # hsv_to_rgb returns 0..1 floats; convert to ints in the range 0..255
       pixels = [(scale(r), scale(g), scale(b)) for r, g, b in pixels]
       for p in range(64):
-         if p in bowtie:
+         if p in sum(ibm_qx5,[]):
             pass
          else:
             pixels[p]=[0,0,0]
