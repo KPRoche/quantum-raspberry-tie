@@ -7,10 +7,23 @@ This code is specifically designed to run on a Raspberry Pi 3 with the SenseHat 
 
 Actual calculations are run using the quantum simulator backend for the quantum processor, to avoid overwhelming the physical processor in the IBM Q lab.
 
-There are two versions of the code. 
-Both require that the **threading**, **sense-hat** and **QISKIT/qiskit-api-py** libraries be installed in order to function.
+# Installation
+
+You will need a Raspberry Pi 3 running at least the Jessie release of Raspbian, with a SenseHat hat properly installed.
+If your processor did not come with the SenseHat libraries pre-installed, you must install them.
+     https://www.raspberrypi.org/documentation/hardware/sense-hat/
+     
+You will need to install the **Python Library for the IBM Quantum Experience API**
+     https://github.com/QISKit/qiskit-api-py
+     If your Raspberry Pi has more than one version of Python installed, be sure to install this library for the Python 3 interpreter!
+
+
 You must have an account set up at the IBM Quantum Experience and obtain your Personal Access Token from the My Account settings.
+
 Your Raspberry Pi must have an active internet connection for the API to function properly
+
+There are two versions of the code. 
+Both require that the **sense-hat** and **QISKIT/qiskit-api-py** libraries be installed in order to function, and use the **threading**, **time**, and **datetime** modules.
 
 # QuantumBowtie.py 
 This version connects to the IBM Q.E. API using your token, initializes the LED display, and then sends the OPENQASM code to the processor. While it waits for the response, it cycles the light display through a rainbow shift to indicate that the system is "thinking". Once the result is returned by the processor, the measured values of the qubits are displayed as either red (measured 0) or blue (measured 1).
