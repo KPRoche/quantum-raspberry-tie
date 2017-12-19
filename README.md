@@ -30,13 +30,18 @@ Both require that the **sense-hat** and **QISKIT/qiskit-api-py** libraries be in
 
 ## QuantumBowtie.py 
 In the source code, search for the string *REPLACE_THIS_STRING_WITH_YOUR_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN* and replace it with your token.
+
 This version connects to the IBM Q.E. API using your token, initializes the LED display, and then sends the OPENQASM code to the processor. While it waits for the response, it cycles the light display through a rainbow shift to indicate that the system is "thinking". Once the result is returned by the processor, the measured values of the qubits are displayed as either red (measured 0) or blue (measured 1).
+
 The system will pause for 10 seconds, then run the code again to display a new result. You may trigger a new run sooner by pressing the SenseHat joystick in any direction.
+
 In each cycle, the status of the backend is checked and printed to the console, as are experiment ID, then the probability value and measured bit pattern of the most-frequent result wich is used for the display
 
 ## QuantumBowtiePing.py
 In the source code, search for the string *INSERT_YOUR_IBM_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN_HERE* and replace it with your token.
+
 This version is a little "smarter" and tries to test its connection to the website before making requests. It's designed to cope more gracefully with what happens if you are running on batteries and your Raspberry Pi switches wireless access points as you move around, or are in a somewhat glitchy wifi environment.
+
 It pings the IBM Quantum Experience site before initializing the API to make sure the site is responding. If the site does not respond at first, the program will exit.
 
 If it successfully connects, in each cycle it pings again before it confirms the backend status and (presuming the backend is not busy) sending the OPENQASM code. If there no good response to the ping, or the backend responds as busy, it waits 10 seconds and tries again, begining again with that initial ping to the website. Other than that, it is doing exactly the same thing as the simpler version.
@@ -61,5 +66,10 @@ The program being run on the processor is very simple. 5 qubits are initialized 
      measure q[3] -> c[3];
      measure q[4] -> c[4];
      
-## A Couple of other notes:
+## Other notes
 The call to api.run_experiment() generates a datetime-based name for each experiment. This is to make sure the backend runs the code rather than looking up results for that experiment name. (At one point, an early version of the code with a static experiment name in the call kept returning exactly the same result every time, because once it had run once, the API kept returning the values from the first time the code was run.)
+
+## acknowledgements
+The color-shifting tecnique in the "thinking" display while waiting for the result from the processor is based on the rainbow.py example in the SenseHat module.
+The Ping function is based on that in the Pi-Ping program by Wesley Archer (c) 2017 
+             https://github.com/raspberrycoulis/Pi-Ping
