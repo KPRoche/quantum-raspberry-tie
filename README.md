@@ -71,7 +71,7 @@ The program being run on the processor is very simple. 5 qubits are initialized 
 The call to api.run_experiment() generates a datetime-based name for each experiment. This is to make sure the backend runs the code rather than looking up results for that experiment name. (At one point, an early version of the code with a static experiment name in the call kept returning exactly the same result every time, because once it had run once, the API kept returning the values from the first time the code was run.)
 
 ## acknowledgements
-The color-shifting tecnique in the "thinking" display while waiting for the result from the processor is based on the rainbow.py example included with the SenseHat library.
+The color-shifting technique in the "thinking" display while waiting for the result from the processor is based on the rainbow.py example included with the SenseHat library.
 
 The Ping function is based on that in the Pi-Ping program by Wesley Archer (c) 2017 
              https://github.com/raspberrycoulis/Pi-Ping
