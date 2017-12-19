@@ -18,7 +18,8 @@ Your Raspberry Pi must have an active internet connection for the API to functio
      
 You will need to install the **Python Library for the IBM Quantum Experience API**
      https://github.com/QISKit/qiskit-api-py
-     If your Raspberry Pi has more than one version of Python installed, be sure to install this library for the Python 3 interpreter!
+     
+If your Raspberry Pi has more than one version of Python installed, be sure to install this library for the Python 3 interpreter!
 
 You must have an account set up at the IBM Quantum Experience and obtain your Personal Access Token from the My Account settings. The readme file for the <a href='https://github.com/QISKit/qiskit-api-py'>qiskit-api-py library</a> explains how to get that token.
 
