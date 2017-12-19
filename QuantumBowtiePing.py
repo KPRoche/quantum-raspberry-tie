@@ -1,25 +1,45 @@
-import requests
-import sys
-import datetime
-import socket
-from threading import Thread
-from colorsys import hsv_to_rgb
-from time import process_time
-from time import sleep
-from sense_hat import SenseHat
-from IBMQuantumExperience import IBMQuantumExperience
+#----------------------------------------------------------------------
+#     QuantumBowtiePing
+#       by KPRoche (Kevin P. Roche) (c) 2017
+#
+#     Connect to the IBM Quantum Experience site via the QISKIT api functions
+#             in qiskit-api-py and run OPENQASM code on the simulator there
+#     Display the results using the 8x8 LED array on a SenseHat
+#     Spin off the display functions in a separate thread so they can exhibit
+#             smooth color changes while "thinking"
+#     Use a ping function to try to make sure the website is available before
+#             sending requests and thus avoid more hangs that way
+#----------------------------------------------------------------------
+
+
+# import the necessary modules
+
+import requests                        # used for ping
+import datetime                        # used to create unique experiment names
+from threading import Thread           # used to spin off the display functions
+from colorsys import hsv_to_rgb        # used to build the color array
+from time import process_time          # used for loop timer
+from time import sleep                 # used for delays
+from sense_hat import SenseHat         # class for controlling the SenseHat
+from IBMQuantumExperience import IBMQuantumExperience  # class for accessing the Quantum Experience API
+
 
 # some variables we are going to need as we start up
+
 # you must replace the string in the next statement with the Personal Access Token for your Quantum Experience account
 myAPItoken="INSERT_YOUR_IBM_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN_HERE"
+
 maxpattern='00000'
-hat = SenseHat() # creating hat early so we can use it in functions
+
+hat = SenseHat() # instantiating hat right away so we can use it in functions
 thinQing=False    # used to tell the display thread when to show the result
+
+
 
 #----------------------------------------------------------------------------
 # set up a ping function so we can confirm the API can connect before we attempt it
 #           ping uses the requests library
-#           based on pi-ping by Wesley Archer (raspberrycoulis)
+#           based on pi-ping by Wesley Archer (raspberrycoulis) (c) 2017
 #           https://github.com/raspberrycoulis/Pi-Ping
 #----------------------------------------------------------------------------
 def ping(website='https://quantumexperience.ng.bluemix.net',repeats=1,wait=0.5,verbose=False):
@@ -48,6 +68,9 @@ def ping(website='https://quantumexperience.ng.bluemix.net',repeats=1,wait=0.5,v
   return int(response.status_code)
 # end DEF ----------------------------------------------------------------
 
+
+
+
 # ------------------------------------------------------------------------
 #  try to start our API connection to IBM QE
 #       Here we attempt to ping the IBM Quantum Experience website. If no response, we exit
@@ -64,16 +87,21 @@ def startAPI():
         exit()
 #-------------------------------------------------------------------------------
 
+
+
+
+
 #-------------------------------------------------------------------------------    
 #   These variables and functions are for lighting up the "bowtie" display
-#           SenseHat
-#   the color shift effect is based on the rainbow example in the sensehat library
+#         on the SenseHat
+#   the color shift effect is based on the rainbow example included with the SenseHat library
 #-------------------------------------------------------------------------------
+
 # pixel coordinates to draw the bowtie qubits
 ibm_qx5 = [[40,41,48,49],[8,9,16,17],[28,29,36,37],[6,7,14,15],[54,55,62,63]]
 
 
-# setting up the 8x8=64 pixel variables
+# setting up the 8x8=64 pixel variables for color shifts
 
 hues = [
     0.00, 0.00, 0.06, 0.13, 0.20, 0.27, 0.34, 0.41,
@@ -101,19 +129,26 @@ def resetrainbow(show=False):
 
 def showqubits(pattern='00000'):
    global hat
-  
-   for p in range(64):
+   for p in range(64):          #first set all pixels off
            pixels[p]=[0,0,0]
-
    for q in range(5):
-      if pattern[q]=='1':
+      if pattern[q]=='1':         # if the digit is "1" assign blue
          for p in ibm_qx5[q]:
             pixels[p]=[0,0,255]
-      else:
+      else:                       # otherwise assign it red
          for p in ibm_qx5[q]:
             pixels[p]=[255,0,0]
 
-   hat.set_pixels(pixels)
+   hat.set_pixels(pixels)         # turn them all on
+
+
+#--------------------------------------------------
+#    blinky lets us use the rainbow rotation code to fill the bowtie pattern
+#       it can be interrupted by tapping the joystick or if
+#       an experiment ID is provided and the 
+#       status returns "DONE"
+#
+#------------------------------------------------------
 
 def blinky(time=10,experimentID=''):
    global pixels,hues,experiment
@@ -144,9 +179,11 @@ def blinky(time=10,experimentID=''):
          if event.action == 'pressed':
             goNow=True
 
+
+
 #------------------------------------------------
 #  now that the light pattern functions are defined,
-#    build a class so we can launch display control as a thread
+#    build a class glow so we can launch display control as a thread
 #------------------------------------------------
 class glow():
    global thinQing,hat, maxpattern
@@ -165,39 +202,41 @@ class glow():
          else:
             showqubits(maxpattern)
 
+
+# Instantiate an instance of our glow class
+
 glowing = glow()
 
 #-------------------------------------------------
 #  OK, let's get this shindig started
 #-------------------------------------------------
 
-rainbowTie = Thread(target=glowing.run)
-startAPI()
+rainbowTie = Thread(target=glowing.run)     # create the display thread
+startAPI()                                  # try to connect and instantiate the API 
 
 qasm='OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[5];\ncreg c[5];\nh q[0];\nh q[1];\nh q[2];\nh q[3];\nh q[4];\nmeasure q[0] -> c[0];\nmeasure q[1] -> c[1];\nmeasure q[2] -> c[2];\nmeasure q[3] -> c[3];\nmeasure q[4] -> c[4];\n'
 backend='simulator'
 
-rainbowTie.start()
+rainbowTie.start()                          # start the display thread
+
 while True:
    thinQing = True
    p=ping()
    if p==200:
-       backend_status = api.backend_status(backend)
+       backend_status = api.backend_status(backend)  # check the availability
        print(backend_status)
        if not backend_status['busy']:
            xpname='Experiment #{:%Y%m%d%H%M%S}'.format(datetime.datetime.now())
-           experiment=api.run_experiment(qasm, backend ,10,xpname,0)
-           experimentID=experiment['idExecution']
+           experiment=api.run_experiment(qasm, backend ,10,xpname,0)  # send the QASM code
+           experimentID=experiment['idExecution']                     # pull out the experiment ID
            print('Running experiment',experiment['idExecution'])
 
-           #blinky(25,experimentID)
-           experiment=api.get_result_from_execution(experimentID)
+           experiment=api.get_result_from_execution(experimentID)     # get the result
            values = experiment['measure']['values']
            labels = experiment['measure']['labels']
            index_max = max( range (len(values)), key=values.__getitem__)
            maxvalue=values[index_max]
            maxpattern=labels[index_max]
-           #print(experiment['status'])
            print("Maximum value:",maxvalue, "Maximum pattern:",maxpattern)
            thinQing = False  # this cues the display thread to show the qubits in maxpattern
        else:
@@ -205,14 +244,14 @@ while True:
    else:
         print(p,'response to ping; waiting to try again')
 
-   goAgain=False
+   goAgain=False                    # wait to do it again
    myTimer=process_time()
    while not goAgain:
-      for event in hat.stick.get_events():
-         if event.action == 'pressed':
+      for event in hat.stick.get_events():   
+         if event.action == 'pressed':      #somebody tapped the joystick -- go now
             goAgain=True
             blinky(.001)
             hat.set_pixels(pixels)
-      if (process_time()-myTimer>10):
+      if (process_time()-myTimer>10):       # 10 seconds elapsed -- go now
             goAgain=True
 
