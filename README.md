@@ -24,9 +24,10 @@ If your Raspberry Pi has more than one version of Python installed, be sure to i
 You must have an account set up at the IBM Quantum Experience and obtain your Personal Access Token from the My Account settings. The readme file for the <a href='https://github.com/QISKit/qiskit-api-py'>qiskit-api-py library</a> explains how to get that token.
 
 Download the source code for the QuantumBowtie program of your choice and open it with an editor. Search for the string that should be replaced with your Personal Access Token, delete it, and paste in your token string instead. Your code should be ready to run!
+If you are running a version with the "file" option, be sure to download expt.qasm and put it in the same directory as your source file.
 
 # Versions
-There are two versions of the code. 
+There are two versions of the code, each with two variations. 
 Both require that the **sense-hat** and **QISKIT/qiskit-api-py** libraries be installed in order to function, and use the **threading**, **time**, and **datetime** modules.
 
 ## QuantumBowtie.py 
@@ -37,6 +38,7 @@ This version connects to the IBM Q.E. API using your token, initializes the LED 
 The system will pause for 10 seconds, then run the code again to display a new result. You may trigger a new run sooner by pressing the SenseHat joystick in any direction.
 
 In each cycle, the status of the backend is checked and printed to the console, as are experiment ID, then the probability value and measured bit pattern of the most-frequent result wich is used for the display
+**QuantumBowtieFile.py** -- This version loads the OPENQASM code for the experiment from a separarate text file, which makes it easier to modify your experiment code.
 
 ## QuantumBowtiePing.py
 In the source code, search for the string *REPLACE_THIS_STRING_WITH_YOUR_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN* and replace it with your token.
@@ -46,6 +48,10 @@ This version is a little "smarter" and tries to test its connection to the websi
 It pings the IBM Quantum Experience site before initializing the API to make sure the site is responding. If the site does not respond at first, the program will exit.
 
 If it successfully connects, in each cycle it pings again before it confirms the backend status and (presuming the backend is not busy) sending the OPENQASM code. If there no good response to the ping, or the backend responds as busy, it waits 10 seconds and tries again, begining again with that initial ping to the website. Other than that, it is doing exactly the same thing as the simpler version.
+
+**QuantumBowtiePingFile.py** -- This version loads the OPENQASM code for the experiment from a separarate text file, which makes it easier to modify your experiment
+
+
 
 Both versions run the display by spawning a second thread. As long as the variable *thinQing* is True, the rainbow cycle is run. If it is False, the value of the string variable *maxpattern* is translated into the red and blue qubit display.
 
