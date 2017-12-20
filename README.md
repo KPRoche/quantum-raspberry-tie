@@ -39,7 +39,7 @@ The system will pause for 10 seconds, then run the code again to display a new r
 In each cycle, the status of the backend is checked and printed to the console, as are experiment ID, then the probability value and measured bit pattern of the most-frequent result wich is used for the display
 
 ## QuantumBowtiePing.py
-In the source code, search for the string *INSERT_YOUR_IBM_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN_HERE* and replace it with your token.
+In the source code, search for the string *REPLACE_THIS_STRING_WITH_YOUR_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN* and replace it with your token.
 
 This version is a little "smarter" and tries to test its connection to the website before making requests. It's designed to cope more gracefully with what happens if you are running on batteries and your Raspberry Pi switches wireless access points as you move around, or are in a somewhat glitchy wifi environment.
 
