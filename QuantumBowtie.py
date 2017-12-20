@@ -1,18 +1,42 @@
-import datetime
-from threading import Thread
-from colorsys import hsv_to_rgb
-from time import process_time
-from time import sleep
-from sense_hat import SenseHat
-from IBMQuantumExperience import IBMQuantumExperience
+#----------------------------------------------------------------------
+#     QuantumBowtie
+#       by KPRoche (Kevin P. Roche) (c) 2017
+#
+#     Connect to the IBM Quantum Experience site via the QISKIT api functions
+#             in qiskit-api-py and run OPENQASM code on the simulator there
+#     Display the results using the 8x8 LED array on a SenseHat
+#     Spin off the display functions in a separate thread so they can exhibit
+#             smooth color changes while "thinking"
+#----------------------------------------------------------------------
+
+
+# import the necessary modules
+
+import datetime                        # used to create unique experiment names
+from threading import Thread           # used to spin off the display functions
+from colorsys import hsv_to_rgb        # used to build the color array
+from time import process_time          # used for loop timer
+from time import sleep                 # used for delays
+from sense_hat import SenseHat         # class for controlling the SenseHat
+from IBMQuantumExperience import IBMQuantumExperience  # class for accessing the Quantum Experience API
+
+# some variables we are going to need as we start up
+
 maxpattern='00000'
-hat = SenseHat()
+hat = SenseHat()      # instantiate the interface to the SenseHat
+
+# create a connection to the Quantum Experience
+# you must replace the string in the next statement with the Personal Access Token for your Quantum Experience account
 api = IBMQuantumExperience("REPLACE_THIS_STRING_WITH_YOUR_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN")
-global glowStop
+
+# functions and variables for the LED display
+
 def scale(v):
     return int(v * 255)
+
 # pixel coordinates to draw the bowtie qubits
 ibm_qx5 = [[40,41,48,49],[8,9,16,17],[28,29,36,37],[6,7,14,15],[54,55,62,63]]
+
 hues = [
     0.00, 0.00, 0.06, 0.13, 0.20, 0.27, 0.34, 0.41,
     0.00, 0.06, 0.13, 0.21, 0.28, 0.35, 0.42, 0.49,
@@ -62,6 +86,7 @@ def blinky(time=10,experimentID=''):
          if event.action == 'pressed':
             goNow=True
 
+# create a class "Glow" so we can run blinky in a separate thread
 class glow():
    global thinqing,hat, maxpattern
    def __init__(self):
@@ -80,27 +105,25 @@ class glow():
             showqubits(maxpattern)
 
 
-glowing = glow()
+glowing = glow()   #instantiate one of that class
 
-rainbowTie = Thread(target=glowing.run)
-
-
-   
+rainbowTie = Thread(target=glowing.run) # make a thread out of it
 
 
+# function to display a 5-qubit measurement
 
 def showqubits(pattern='00000'):
    global hat
   
-   for p in range(64):
+   for p in range(64):          # assign them all to off
            pixels[p]=[0,0,0]
 
    for q in range(5):
-      if pattern[q]=='1':
+      if pattern[q]=='1':       # if it's a 1 in the string set to blue
          for p in ibm_qx5[q]:
             pixels[p]=[0,0,255]
       else:
-         for p in ibm_qx5[q]:
+         for p in ibm_qx5[q]:   # otherwise set to red
             pixels[p]=[255,0,0]
 
    hat.set_pixels(pixels)
@@ -120,8 +143,6 @@ while True:
    experiment=api.run_experiment(qasm, backend ,10,xpname,0)
    experimentID=experiment['idExecution']
    print('Running experiment',experiment['idExecution'])
-
-   #blinky(25,experimentID)
    experiment=api.get_result_from_execution(experimentID)
    values = experiment['measure']['values']
    labels = experiment['measure']['labels']
@@ -132,10 +153,8 @@ while True:
    print("Maximum value:",maxvalue)
    print("Maximum pattern:",maxpattern)
    thinqing = False
-#   rainbowTie.stop()
-#   showqubits(maxpattern)
 
-   goAgain=False
+   goAgain=False            #once we've run an experiment, wait 10 seconds or until the joystick is tapped
    myTimer=process_time()
    while not goAgain:
       for event in hat.stick.get_events():

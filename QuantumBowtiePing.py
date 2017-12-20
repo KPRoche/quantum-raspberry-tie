@@ -27,7 +27,7 @@ from IBMQuantumExperience import IBMQuantumExperience  # class for accessing the
 # some variables we are going to need as we start up
 
 # you must replace the string in the next statement with the Personal Access Token for your Quantum Experience account
-myAPItoken="INSERT_YOUR_IBM_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN_HERE"
+myAPItoken="REPLACE_THIS_STRING_WITH_YOUR_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN"
 
 maxpattern='00000'
 
