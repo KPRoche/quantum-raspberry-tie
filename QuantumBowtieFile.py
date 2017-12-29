@@ -11,7 +11,8 @@
 
 
 # import the necessary modules
-
+import sys                             # used to check for passed filename
+import os                              # used to find script directory
 import datetime                        # used to create unique experiment names
 from threading import Thread           # used to spin off the display functions
 from colorsys import hsv_to_rgb        # used to build the color array
@@ -27,7 +28,34 @@ hat = SenseHat()      # instantiate the interface to the SenseHat
 
 # create a connection to the Quantum Experience
 # you must replace the string in the next statement with the Personal Access Token for your Quantum Experience account
-api = IBMQuantumExperience("a24ffaabe0cb6d8f2d772a05c1f536e8142de1c6c4a96fa8b5f5dd9fea586c8356440da5d7bb50b4354a3355d600029828f44dcf35fe08187403fbb5b9274f0f")api = IBMQuantumExperience("REPLACE_THIS_STRING_WITH_YOUR_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN")
+api = IBMQuantumExperience("REPLACE_THIS_STRING_WITH_YOUR_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN")
+
+thinqing=False
+
+#----------------------------------------------------------
+# find our experiment file... alternate can be specified on command line
+#       use a couple tricks to make sure it is there
+#       if not fall back on our default file
+
+
+scriptfolder = os.path.dirname(sys.argv[0])
+print(sys.argv)
+if (len(sys.argv) > 1) and type(sys.argv[1]) is str:
+  qasmfilename=sys.argv[1]
+else:
+  qasmfilename='expt.qasm'
+if ('/' not in qasmfilename):
+  qasmfilename=scriptfolder+"/"+qasmfilename
+if (not os.path.isfile(qasmfilename)):
+    qasmfilename=scriptfolder+"/"+'expt.qasm'
+    
+print("OPENQASM file: ",qasmfilename)
+if (not os.path.isfile(qasmfilename)):
+    print("QASM file not found... exiting.")
+    exit()
+
+
+
 
 #-----------------------------------------------------------------------
 #             functions and variables for the LED display on the SenseHat
@@ -47,7 +75,7 @@ hues = [
     ]
 pixels = [hsv_to_rgb(h, 1.0, 1.0) for h in hues]
 
-thinqing=False
+
 
 # pixel coordinates to draw the bowtie qubits
 ibm_qx5 = [[40,41,48,49],[8,9,16,17],[28,29,36,37],[6,7,14,15],[54,55,62,63]]
@@ -147,7 +175,7 @@ glowing = glow()   #instantiate an instance of the glow class
 
 rainbowTie = Thread(target=glowing.run) # make a thread out of it
 
-exptfile = open('expt.qasm','r') # open the file with the OPENQASM code in it
+exptfile = open(qasmfilename,'r') # open the file with the OPENQASM code in it
 qasm= exptfile.read()            # read the contents into our experiment string
 
 if (len(qasm)<5):                # if that is too short to be real, exit
