@@ -14,7 +14,8 @@
 
 
 # import the necessary modules
-
+import sys                             # used to check for passed filename
+import os                              # used to find script directory
 import requests                        # used for ping
 import datetime                        # used to create unique experiment names
 from threading import Thread           # used to spin off the display functions
@@ -36,6 +37,27 @@ hat = SenseHat() # instantiating hat right away so we can use it in functions
 thinQing=False    # used to tell the display thread when to show the result
 
 
+#----------------------------------------------------------
+# find our experiment file... alternate can be specified on command line
+#       use a couple tricks to make sure it is there
+#       if not fall back on our default file
+
+
+scriptfolder = os.path.dirname(os.path.realpath(__file__))
+print(sys.argv)
+if (len(sys.argv) > 1) and type(sys.argv[1]) is str:
+  qasmfilename=sys.argv[1]
+else:
+  qasmfilename='expt.qasm'
+if ('/' not in qasmfilename):
+  qasmfilename=scriptfolder+"/"+qasmfilename
+if (not os.path.isfile(qasmfilename)):
+    qasmfilename=scriptfolder+"/"+'expt.qasm'
+    
+print("OPENQASM file: ",qasmfilename)
+if (not os.path.isfile(qasmfilename)):
+    print("QASM file not found... exiting.")
+    exit()
 
 #----------------------------------------------------------------------------
 # set up a ping function so we can confirm the API can connect before we attempt it
@@ -215,7 +237,7 @@ glowing = glow()
 rainbowTie = Thread(target=glowing.run)     # create the display thread
 startAPI()                                  # try to connect and instantiate the API 
 
-exptfile = open('expt.qasm','r') # open the file with the OPENQASM code in it
+exptfile = open(qasmfilename,'r') # open the file with the OPENQASM code in it
 qasm= exptfile.read()            # read the contents into our experiment string
 
 if (len(qasm)<5):                # if that is too short to be real, exit
