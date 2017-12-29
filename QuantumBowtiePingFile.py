@@ -43,7 +43,7 @@ thinQing=False    # used to tell the display thread when to show the result
 #       if not fall back on our default file
 
 
-scriptfolder = os.path.dirname(os.path.realpath(__file__))
+scriptfolder = os.path.dirname(sys.argv[0])
 print(sys.argv)
 if (len(sys.argv) > 1) and type(sys.argv[1]) is str:
   qasmfilename=sys.argv[1]
