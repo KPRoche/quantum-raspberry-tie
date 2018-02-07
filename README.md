@@ -7,7 +7,9 @@ The QuantumBowtie5.py runs a 5-qubit program and displays it in a manner corresp
 <img src='RaspberryTieOutput.png' width='200' alt='Output displayed on the SenseHat' style='float:right;'><br/> 
 (It's called a bowtie because of the arrangement of the 5 qubits, and the particular ways they can interconnect via entanglement. Each of those rectangles touched by a squiggly line in the image on the left holds a qubit.)
 
-The QuantumRaspberry16.py code can run and display an openquasm program corresponding to a 16-qubit processor
+The QuantumRaspberry16.py code can run and display an program corresponding to a 16-qubit processor
+<br /><img src='ibm_16_qubit_processor-100722935-large.3x2.jpg' width='200' alt='IBM 16 qubit processor' style='float:left;'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<img src='16-bitRpi-result.JPG' width='200' alt='16 qubit Output displayed on the SenseHat' style='float:right;'><br/> >
 
 Actual calculations are run using the quantum simulator backend for the quantum processor, to avoid overwhelming the physical processor in the IBM Q lab.
 
@@ -33,33 +35,32 @@ If you are running a version with the "file" option, be sure to download expt.qa
 There are two versions of the code, each with two variations. 
 Both require that the **sense-hat** and **QISKIT/qiskit-api-py** libraries be installed in order to function, and use the **threading**, **time**, and **datetime** modules.
 
-## QuantumBowtie.py 
+## QuantumBowtie5.py
 In the source code, search for the string *REPLACE_THIS_STRING_WITH_YOUR_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN* and replace it with your token.
 
-This version connects to the IBM Q.E. API using your token, initializes the LED display, and then sends the OPENQASM code to the processor. While it waits for the response, it cycles the light display through a rainbow shift to indicate that the system is "thinking". Once the result is returned by the processor, the measured values of the qubits are displayed as either red (measured 0) or blue (measured 1).
+This version loads the OPENQASM code for the experiment from a separarate text file, expt.qasm which makes it easier to modify your experiment code.
+
+This program connects to the IBM Quantum Experience API using your token, initializes the LED display, and then sends the OPENQASM code to the processor. While it waits for the response, it cycles the light display through a rainbow shift to indicate that the system is "thinking". Once the result is returned by the processor, the measured values of the qubits are displayed as either red (measured 0) or blue (measured 1).
 
 The system will pause for 10 seconds, then run the code again to display a new result. You may trigger a new run sooner by pressing the SenseHat joystick in any direction.
 
 In each cycle, the status of the backend is checked and printed to the console, as are experiment ID, then the probability value and measured bit pattern of the most-frequent result wich is used for the display
-**QuantumBowtieFile.py** -- This version loads the OPENQASM code for the experiment from a separarate text file, which makes it easier to modify your experiment code.
 
-## QuantumBowtiePing.py
+
 In the source code, search for the string *REPLACE_THIS_STRING_WITH_YOUR_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN* and replace it with your token.
 
-This version is a little "smarter" and tries to test its connection to the website before making requests. It's designed to cope more gracefully with what happens if you are running on batteries and your Raspberry Pi switches wireless access points as you move around, or are in a somewhat glitchy wifi environment.
+This version  tries to test its connection to the website before making requests. It's designed to cope more gracefully with what happens if you are running on batteries and your Raspberry Pi switches wireless access points as you move around, or are in a somewhat glitchy wifi environment.
 
 It pings the IBM Quantum Experience site before initializing the API to make sure the site is responding. If the site does not respond at first, the program will exit.
 
-If it successfully connects, in each cycle it pings again before it confirms the backend status and (presuming the backend is not busy) sending the OPENQASM code. If there no good response to the ping, or the backend responds as busy, it waits 10 seconds and tries again, begining again with that initial ping to the website. Other than that, it is doing exactly the same thing as the simpler version.
+If it successfully connects, in each cycle it pings again before it confirms the backend status and (presuming the backend is not busy) sending the OPENQASM code. If there no good response to the ping, or the backend responds as busy, it waits 10 seconds and tries again, begining again with that initial ping to the website. 
 
-**QuantumBowtiePingFile.py** -- This version loads the OPENQASM code for the experiment from a separarate text file, which makes it easier to modify your experiment
+**QuantumRaspberry16.py** -- This version runs exactly the same way, but is set up to display a 16-qubit result on the SENSEHAT. It uses  the file expt16.qasm to load its OPENQASM source code.
 
-
-
-Both versions run the display by spawning a second thread. As long as the variable *thinQing* is True, the rainbow cycle is run. If it is False, the value of the string variable *maxpattern* is translated into the red and blue qubit display.
+Both versions run the display by spawning a second thread. As long as the variable *thinking* is True, the rainbow cycle is run. If it is False, the value of the string variable *maxpattern* is translated into the red and blue qubit display.
 
 ## The OPENQASM code being run
-The program being run on the processor is very simple. 5 qubits are initialized to the ground state, a Hadamard gate is applied to each one to place it into a state of full superposition, then each is measured. The net effect is a 5-bit random number generator. Only 10 shots are run, so one pattern should always randomly end up higher in the results. The code is found in the variable *qasm* in both versions. It looks like this:
+The program being run on the 5-qubit processor is very simple. 5 qubits are initialized to the ground state, a Hadamard gate is applied to each one to place it into a state of full superposition, then each is measured. The net effect is a 5-bit random number generator. Only 10 shots are run, so one pattern should always randomly end up higher in the results. The code is found in the variable *qasm* in both versions. It looks like this:
 
      OPENQASM 2.0;
      include "qelib1.inc";
@@ -75,9 +76,8 @@ The program being run on the processor is very simple. 5 qubits are initialized 
      measure q[2] -> c[2];
      measure q[3] -> c[3];
      measure q[4] -> c[4];
-     
-## Other notes
-The call to api.run_experiment() generates a datetime-based name for each experiment. This is to make sure the backend runs the code rather than looking up results for that experiment name. (At one point, an early version of the code with a static experiment name in the call kept returning exactly the same result every time, because once it had run once, the API kept returning the values from the first time the code was run.)
+
+The 16-qubit version does exactly the same thing only with 16 quantum registers and 16 classical registers. 
 
 ## acknowledgements
 The color-shifting technique in the "thinking" display while waiting for the result from the processor is based on the rainbow.py example included with the SenseHat library.
