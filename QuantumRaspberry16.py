@@ -9,11 +9,13 @@
 #             smooth color changes while "thinking"
 #     Use a ping function to try to make sure the website is available before
 #             sending requests and thus avoid more hangs that way
+#     Move the QASM code into an outside file
 #----------------------------------------------------------------------
 
 
 # import the necessary modules
-
+import sys                             # used to check for passed filename
+import os                              # used to find script directory
 import requests                        # used for ping
 import datetime                        # used to create unique experiment names
 from threading import Thread           # used to spin off the display functions
@@ -29,12 +31,33 @@ from IBMQuantumExperience import IBMQuantumExperience  # class for accessing the
 # you must replace the string in the next statement with the Personal Access Token for your Quantum Experience account
 myAPItoken="REPLACE_THIS_STRING_WITH_YOUR_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN"
 
-maxpattern='00000'
+maxpattern='000000000000000000'
 
 hat = SenseHat() # instantiating hat right away so we can use it in functions
-thinQing=False    # used to tell the display thread when to show the result
+thinking=False    # used to tell the display thread when to show the result
 
 
+#----------------------------------------------------------
+# find our experiment file... alternate can be specified on command line
+#       use a couple tricks to make sure it is there
+#       if not fall back on our default file
+
+
+scriptfolder = os.path.dirname(os.path.realpath(__file__))
+print(sys.argv)
+if (len(sys.argv) > 1) and type(sys.argv[1]) is str:
+  qasmfilename=sys.argv[1]
+else:
+  qasmfilename='expt16.qasm'
+if ('/' not in qasmfilename):
+  qasmfilename=scriptfolder+"/"+qasmfilename
+if (not os.path.isfile(qasmfilename)):
+    qasmfilename=scriptfolder+"/"+'expt.qasm'
+    
+print("OPENQASM file: ",qasmfilename)
+if (not os.path.isfile(qasmfilename)):
+    print("QASM file not found... exiting.")
+    exit()
 
 #----------------------------------------------------------------------------
 # set up a ping function so we can confirm the API can connect before we attempt it
@@ -83,6 +106,8 @@ def startAPI():
 
     if p==200:
         api = IBMQuantumExperience(myAPItoken)
+        #backends = api.available_backends()
+        #print (backends);
     else:
         exit()
 #-------------------------------------------------------------------------------
@@ -97,8 +122,12 @@ def startAPI():
 #   the color shift effect is based on the rainbow example included with the SenseHat library
 #-------------------------------------------------------------------------------
 
-# pixel coordinates to draw the bowtie qubits
+# pixel coordinates to draw the 5 bowtie qubits
 ibm_qx5 = [[40,41,48,49],[8,9,16,17],[28,29,36,37],[6,7,14,15],[54,55,62,63]]
+# pixel coordinates to draw the 16 qubits
+ibm_qx16 = [[63],[54],[61],[52],[59],[50],[57],[48],
+            [7],[14],[5],[12],[3],[10],[1],[8]]
+            
 
 
 # setting up the 8x8=64 pixel variables for color shifts
@@ -127,16 +156,17 @@ def resetrainbow(show=False):
    pixels = [(scale(r), scale(g), scale(b)) for r, g, b in pixels]
    if (show): hat.set_pixels(pixels)
 
-def showqubits(pattern='00000'):
+def showqubits(pattern='0000000000000000'):
    global hat
    for p in range(64):          #first set all pixels off
            pixels[p]=[0,0,0]
-   for q in range(5):
+   for q in range(16):
+     if pattern[q]:
       if pattern[q]=='1':         # if the digit is "1" assign blue
-         for p in ibm_qx5[q]:
+         for p in ibm_qx16[q]:
             pixels[p]=[0,0,255]
       else:                       # otherwise assign it red
-         for p in ibm_qx5[q]:
+         for p in ibm_qx16[q]:
             pixels[p]=[255,0,0]
 
    hat.set_pixels(pixels)         # turn them all on
@@ -163,7 +193,7 @@ def blinky(time=10,experimentID=''):
       # hsv_to_rgb returns 0..1 floats; convert to ints in the range 0..255
       pixels = [(scale(r), scale(g), scale(b)) for r, g, b in pixels]
       for p in range(64):
-         if p in sum(ibm_qx5,[]):
+         if p in sum(ibm_qx16,[]):
             pass
          else:
             pixels[p]=[0,0,0]
@@ -186,7 +216,7 @@ def blinky(time=10,experimentID=''):
 #    build a class glow so we can launch display control as a thread
 #------------------------------------------------
 class glow():
-   global thinQing,hat, maxpattern
+   global thinking,hat, maxpattern
    def __init__(self):
       self._running = True
       
@@ -195,9 +225,9 @@ class glow():
       self._stop = True
 
    def run(self):
-      #thinQing=False
+      #thinking=False
       while self._running:
-         if thinQing:
+         if thinking:
             blinky(.1)
          else:
             showqubits(maxpattern)
@@ -214,31 +244,52 @@ glowing = glow()
 rainbowTie = Thread(target=glowing.run)     # create the display thread
 startAPI()                                  # try to connect and instantiate the API 
 
-qasm='OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[5];\ncreg c[5];\nh q[0];\nh q[1];\nh q[2];\nh q[3];\nh q[4];\nmeasure q[0] -> c[0];\nmeasure q[1] -> c[1];\nmeasure q[2] -> c[2];\nmeasure q[3] -> c[3];\nmeasure q[4] -> c[4];\n'
-backend='simulator'
+exptfile = open(qasmfilename,'r') # open the file with the OPENQASM code in it
+qasm= exptfile.read()            # read the contents into our experiment string
+
+if (len(qasm)<5):                # if that is too short to be real, exit
+    exit
+else:                            # otherwise print it to the console for reference
+    print("OPENQASM code to send:\n",qasm)
+    
+
+backend='simulator'             # specify the simulator as the backend
 
 rainbowTie.start()                          # start the display thread
 
 while True:
-   thinQing = True
+   thinking = True
    p=ping()
    if p==200:
        backend_status = api.backend_status(backend)  # check the availability
        print(backend_status)
+       print()
        if not backend_status['busy']:
            xpname='Experiment #{:%Y%m%d%H%M%S}'.format(datetime.datetime.now())
-           experiment=api.run_experiment(qasm, backend ,10,xpname,0)  # send the QASM code
-           experimentID=experiment['idExecution']                     # pull out the experiment ID
-           print('Running experiment',experiment['idExecution'])
-
+           qasm_object=[{'qasm':qasm}]
+           jobs=api.run_job(qasm_object, backend ,200,1)  # send the QASM code
+           #print (jobs)
+           #print()
+           experiment_info=jobs['qasms'][0]
+           experimentID=experiment_info['executionId']                     # pull out the experiment ID
+           print(experiment_info['status'],experimentID) 
            experiment=api.get_result_from_execution(experimentID)     # get the result
-           values = experiment['measure']['values']
-           labels = experiment['measure']['labels']
-           index_max = max( range (len(values)), key=values.__getitem__)
-           maxvalue=values[index_max]
-           maxpattern=labels[index_max]
-           print("Maximum value:",maxvalue, "Maximum pattern:",maxpattern)
-           thinQing = False  # this cues the display thread to show the qubits in maxpattern
+           while not experiment:                                      # if the result is empty we're going to wait until it isn't
+             experiment=api.get_result_from_execution(experimentID)     # get the result
+             if not experiment:
+               print(experiment)
+             
+
+           if 'measure' in experiment:
+             values = experiment['measure']['values']
+             labels = experiment['measure']['labels']
+             index_max = max( range (len(values)), key=values.__getitem__)
+             maxvalue=values[index_max]
+             maxpattern=labels[index_max]
+             print("Maximum value:",maxvalue, "Maximum pattern:",maxpattern[0:8],maxpattern[8:16])
+             thinking = False  # this cues the display thread to show the qubits in maxpattern
+           else:
+             print ('No measure data; waiting to try again')
        else:
             print(backend,'busy; waiting to try again')
    else:

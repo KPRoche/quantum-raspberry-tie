@@ -43,7 +43,7 @@ thinQing=False    # used to tell the display thread when to show the result
 #       if not fall back on our default file
 
 
-scriptfolder = os.path.dirname(sys.argv[0])
+scriptfolder = os.path.dirname(os.path.realpath(__file__))
 print(sys.argv)
 if (len(sys.argv) > 1) and type(sys.argv[1]) is str:
   qasmfilename=sys.argv[1]
@@ -258,18 +258,30 @@ while True:
        print(backend_status)
        if not backend_status['busy']:
            xpname='Experiment #{:%Y%m%d%H%M%S}'.format(datetime.datetime.now())
-           experiment=api.run_experiment(qasm, backend ,10,xpname,0)  # send the QASM code
-           experimentID=experiment['idExecution']                     # pull out the experiment ID
-           print('Running experiment',experiment['idExecution'])
+           qasms=[{'qasm':qasm}]
+           jobs=api.run_job(qasms, backend ,8192,1)  # send the QASM code
+
+           experiment_info=jobs['qasms'][0]
+           experimentID=experiment_info['executionId']                     # pull out the experiment ID
+
+           print(experiment_info['status'],experiment_info['executionId'])
 
            experiment=api.get_result_from_execution(experimentID)     # get the result
-           values = experiment['measure']['values']
-           labels = experiment['measure']['labels']
-           index_max = max( range (len(values)), key=values.__getitem__)
-           maxvalue=values[index_max]
-           maxpattern=labels[index_max]
-           print("Maximum value:",maxvalue, "Maximum pattern:",maxpattern)
-           thinQing = False  # this cues the display thread to show the qubits in maxpattern
+           while not experiment:
+             experiment=api.get_result_from_execution(experimentID)     # get the result
+             if not experiment:
+               print(experiment)
+             
+           if 'measure' in experiment:
+             values = experiment['measure']['values']
+             labels = experiment['measure']['labels']
+             index_max = max( range (len(values)), key=values.__getitem__)
+             maxvalue=values[index_max]
+             maxpattern=labels[index_max]
+             print("Maximum value:",maxvalue, "Maximum pattern:",maxpattern)
+             thinQing = False  # this cues the display thread to show the qubits in maxpattern
+           else:
+             print ('No measure data; waiting to try again')
        else:
             print(backend,'busy; waiting to try again')
    else:
