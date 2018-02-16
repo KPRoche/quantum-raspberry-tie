@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------
 #     QuantumBowtiePing
-#       by KPRoche (Kevin P. Roche) (c) 2017
-#
+#       by KPRoche (Kevin P. Roche) 
+#     (c) 2017, 2018  by IBM Corporation
 #     Connect to the IBM Quantum Experience site via the QISKIT api functions
 #             in qiskit-api-py and run OPENQASM code on the simulator there
 #     Display the results using the 8x8 LED array on a SenseHat
