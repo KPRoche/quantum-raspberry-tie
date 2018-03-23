@@ -24,9 +24,11 @@ Your Raspberry Pi must have an active internet connection for the API to functio
 You will need to install the **Python Library for the IBM Quantum Experience API**
      https://github.com/QISKit/qiskit-api-py
      
+**IMPORTANT:** Do not install the complete QISKit library, only this API library! A complete QISKit install will corrupt a library necessary for the SenseHat library to function. Using _pip install IBMQuantumExperience_  (or _pip3 install IBMQuantumExperience_ as appropriate) will install just the API library you need for the Raspberry Pi to work with both IBM Q and the SenseHat.
+
 If your Raspberry Pi has more than one version of Python installed, be sure to install this library for the Python 3 interpreter!
 
-You must have an account set up at the IBM Quantum Experience and obtain your Personal Access Token from the My Account settings. The readme file for the <a href='https://github.com/QISKit/qiskit-api-py'>qiskit-api-py library</a> explains how to get that token.
+You must have an account set up at the IBM Q Experience and obtain your Personal Access Token from the My Account settings. The readme file for the <a href='https://github.com/QISKit/qiskit-api-py'>qiskit-api-py library</a> explains how to get that token.
 
 Download the source code for the QuantumBowtie program of your choice and open it with an editor. Search for the string that should be replaced with your Personal Access Token, delete it, and paste in your token string instead. Your code should be ready to run!
 If you are running a version with the "file" option, be sure to download expt.qasm and put it in the same directory as your source file.
