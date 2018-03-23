@@ -246,7 +246,7 @@ else:                            # otherwise print it to the console for referen
     print("OPENQASM code to send:\n",qasm)
     
 
-backend='simulator'             # specify the simulator as the backend
+backend='ibmqx_qasm_simulator'             # specify the simulator as the backend
 
 rainbowTie.start()                          # start the display thread
 
