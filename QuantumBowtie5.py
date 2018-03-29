@@ -1,7 +1,7 @@
 #----------------------------------------------------------------------
 #     QuantumBowtiePing
-#       by KPRoche (Kevin P. Roche) 
-#     (c) 2017, 2018  by IBM Corporation
+#       by KPRoche (Kevin P. Roche) (c) 2017, 2018
+#
 #     Connect to the IBM Quantum Experience site via the QISKIT api functions
 #             in qiskit-api-py and run OPENQASM code on the simulator there
 #     Display the results using the 8x8 LED array on a SenseHat
@@ -10,6 +10,8 @@
 #     Use a ping function to try to make sure the website is available before
 #             sending requests and thus avoid more hangs that way
 #     Move the QASM code into an outside file
+#
+#     March 2018: add shutdown by pressing and holding SpaceHat joystick button
 #----------------------------------------------------------------------
 
 
@@ -29,13 +31,14 @@ from IBMQuantumExperience import IBMQuantumExperience  # class for accessing the
 # some variables we are going to need as we start up
 
 # you must replace the string in the next statement with the Personal Access Token for your Quantum Experience account
-myAPItoken="REPLACE_THIS_STRING_WITH_YOUR_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN"
+#myAPItoken="REPLACE_THIS_STRING_WITH_YOUR_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN"
+
 
 maxpattern='00000'
 
 hat = SenseHat() # instantiating hat right away so we can use it in functions
-thinQing=False    # used to tell the display thread when to show the result
-
+thinking=False    # used to tell the display thread when to show the result
+shutdown=False    # used to tell the display thread to trigger a shutdown
 
 #----------------------------------------------------------
 # find our experiment file... alternate can be specified on command line
@@ -123,6 +126,20 @@ def startAPI():
 # pixel coordinates to draw the bowtie qubits
 ibm_qx5 = [[40,41,48,49],[8,9,16,17],[28,29,36,37],[6,7,14,15],[54,55,62,63]]
 
+# global to spell OFF in a single operation
+X = [255, 255, 255]  # white
+O = [  0,   0,   0]  # black
+
+off = [
+   O, O, O, O, O, O, O, O,
+   O, X, O, X, X, O, X, X,
+   X, O, X, X, O, O, X, O,
+   X, O, X, X, X, O, X, X,
+   X, O, X, X, O, O, X, O,
+   O, X, O, X, O, O, X, O,
+   O, O, O, O, O, O, O, O,
+   O, O, O, O, O, O, O, O,
+   ]
 
 # setting up the 8x8=64 pixel variables for color shifts
 
@@ -201,7 +218,8 @@ def blinky(time=10,experimentID=''):
       for event in hat.stick.get_events():
          if event.action == 'pressed':
             goNow=True
-
+         if event.action == 'held' and event.direction =='middle':
+            shutdown=True 
 
 
 #------------------------------------------------
@@ -209,7 +227,8 @@ def blinky(time=10,experimentID=''):
 #    build a class glow so we can launch display control as a thread
 #------------------------------------------------
 class glow():
-   global thinQing,hat, maxpattern
+   global thinking,hat, maxpattern, shutdown,off
+
    def __init__(self):
       self._running = True
       
@@ -218,12 +237,20 @@ class glow():
       self._stop = True
 
    def run(self):
-      #thinQing=False
+      #thinking=False
       while self._running:
-         if thinQing:
-            blinky(.1)
+         if shutdown:
+            hat.set_rotation(180)
+            hat.set_pixels(off)
+            sleep(1)
+            hat.clear()
+            path = 'sudo shutdown -P now '
+            os.system (path)
          else:
-            showqubits(maxpattern)
+           if thinking:
+              blinky(.1)
+           else:
+              showqubits(maxpattern)
 
 
 # Instantiate an instance of our glow class
@@ -250,8 +277,9 @@ backend='ibmqx_qasm_simulator'             # specify the simulator as the backen
 
 rainbowTie.start()                          # start the display thread
 
+
 while True:
-   thinQing = True
+   thinking = True
    p=ping()
    if p==200:
        backend_status = api.backend_status(backend)  # check the availability
@@ -279,7 +307,7 @@ while True:
              maxvalue=values[index_max]
              maxpattern=labels[index_max]
              print("Maximum value:",maxvalue, "Maximum pattern:",maxpattern)
-             thinQing = False  # this cues the display thread to show the qubits in maxpattern
+             thinking = False  # this cues the display thread to show the qubits in maxpattern
            else:
              print ('No measure data; waiting to try again')
        else:
@@ -295,6 +323,10 @@ while True:
             goAgain=True
             blinky(.001)
             hat.set_pixels(pixels)
+         if event.action == 'held' and event.direction =='middle':
+            shutdown=True 
+
+           
       if (process_time()-myTimer>10):       # 10 seconds elapsed -- go now
             goAgain=True
 
