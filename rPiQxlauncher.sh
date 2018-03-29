@@ -3,7 +3,7 @@
 # navigate to home directory, then to code directory, then launch
 # navigate to the drive root
 cd /
-# navigate to the directory with the Quantum Raspberry files in it
+# navigate to the directory with the Quantum Raspberry files in it (you must change YOURCODEDIRECTORY appropriately)
 cd home/pi/YOURCODEDIRECTORY
 
 # Launch the program
