@@ -9,9 +9,11 @@ The QuantumBowtie5.py runs a 5-qubit program and displays it in a manner corresp
 
 The QuantumRaspberry16.py code can run and display an program corresponding to a 16-qubit processor
 <br /><img src='ibm_16_qubit_processor-100722935-large.3x2.jpg' width='200' alt='IBM 16 qubit processor' style='float:left;'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<img src='16-bitRpi-result.JPG' width='200' alt='16 qubit Output displayed on the SenseHat' style='float:right;'><br/> >
+<img src='16-bitRpi-result.JPG' width='200' alt='16 qubit Output displayed on the SenseHat' style='float:right;'><br/>
 
 Actual calculations are run using the quantum simulator backend for the quantum processor, to avoid overwhelming the physical processor in the IBM Q lab.
+
+**New** This version of the programs can trigger a shutdown of the Raspberry Pi by means of pressing and holding the SenseHat Joystick button straight down. This is very useful when running as a demo from battery, as it provides a means of safely shutting down the Pi and avoiding SD card damage even without a screen and input device.
 
 # Installation
 
@@ -54,6 +56,8 @@ If the ping is good, it then connects to the IBM Quantum Experience API using yo
 The system will pause for 10 seconds, then run the code again to display a new result. You may trigger a new run sooner by pressing the SenseHat joystick in any direction. 
 
 In each cycle, the status of the backend is checked and printed to the console, as are experiment ID, then the probability value and measured bit pattern of the most-frequent result wich is used for the display
+
+To stop the program and shut down the Pi, press and hold the joystick button on the SenseHat. The color display will stop cycling, it will briefly display **OFF** on the LED array, and then the Pi will shut down. When the green light on the Pi stops flashing, it is safe to disconnect power.
 
 
 **QuantumRaspberry16.py** -- This version runs exactly the same way, but is set up to display a 16-qubit result on the SENSEHAT. It uses  the file _expt16.qasm_ to load its OPENQASM source code.

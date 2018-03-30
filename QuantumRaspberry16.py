@@ -1,7 +1,9 @@
+#!/usr/bin/python3
+
 #----------------------------------------------------------------------
-#     QuantumBowtiePing
-#       by KPRoche (Kevin P. Roche) 
-#     (c) 2017, 2018  by IBM Corporation
+#     QuantumRaspberry16
+#       by KPRoche (Kevin P. Roche) (c) 2017,2018
+#
 #     Connect to the IBM Quantum Experience site via the QISKIT api functions
 #             in qiskit-api-py and run OPENQASM code on the simulator there
 #     Display the results using the 8x8 LED array on a SenseHat
@@ -10,6 +12,8 @@
 #     Use a ping function to try to make sure the website is available before
 #             sending requests and thus avoid more hangs that way
 #     Move the QASM code into an outside file
+#
+#     March 2018 -- Detect a held center switch on the SenseHat joystick to trigger shutdown
 #----------------------------------------------------------------------
 
 
@@ -29,12 +33,13 @@ from IBMQuantumExperience import IBMQuantumExperience  # class for accessing the
 # some variables we are going to need as we start up
 
 # you must replace the string in the next statement with the Personal Access Token for your Quantum Experience account
-myAPItoken="REPLACE_THIS_STRING_WITH_YOUR_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN"
+#myAPItoken="REPLACE_THIS_STRING_WITH_YOUR_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN"
 
 maxpattern='000000000000000000'
 
 hat = SenseHat() # instantiating hat right away so we can use it in functions
 thinking=False    # used to tell the display thread when to show the result
+shutdown=False    # used to tell the display thread to trigger a shutdown
 
 
 #----------------------------------------------------------
@@ -52,7 +57,7 @@ else:
 if ('/' not in qasmfilename):
   qasmfilename=scriptfolder+"/"+qasmfilename
 if (not os.path.isfile(qasmfilename)):
-    qasmfilename=scriptfolder+"/"+'expt.qasm'
+    qasmfilename=scriptfolder+"/"+'expt16.qasm'
     
 print("OPENQASM file: ",qasmfilename)
 if (not os.path.isfile(qasmfilename)):
@@ -127,7 +132,23 @@ ibm_qx5 = [[40,41,48,49],[8,9,16,17],[28,29,36,37],[6,7,14,15],[54,55,62,63]]
 # pixel coordinates to draw the 16 qubits
 ibm_qx16 = [[63],[54],[61],[52],[59],[50],[57],[48],
             [7],[14],[5],[12],[3],[10],[1],[8]]
+            #[[0],[9],[2],[11],[4],[13],[6],[15],
+            #[56],[49],[58],[51],[60],[53],[62],[55]]
             
+# global to spell OFF in a single operation
+X = [255, 255, 255]  # white
+O = [  0,   0,   0]  # black
+
+off = [
+   O, O, O, O, O, O, O, O,
+   O, X, O, X, X, O, X, X,
+   X, O, X, X, O, O, X, O,
+   X, O, X, X, X, O, X, X,
+   X, O, X, X, O, O, X, O,
+   O, X, O, X, O, O, X, O,
+   O, O, O, O, O, O, O, O,
+   O, O, O, O, O, O, O, O,
+   ]
 
 
 # setting up the 8x8=64 pixel variables for color shifts
@@ -208,7 +229,8 @@ def blinky(time=10,experimentID=''):
       for event in hat.stick.get_events():
          if event.action == 'pressed':
             goNow=True
-
+         if event.action == 'held' and event.direction =='middle':
+            shutdown=True 
 
 
 #------------------------------------------------
@@ -227,11 +249,18 @@ class glow():
    def run(self):
       #thinking=False
       while self._running:
-         if thinking:
-            blinky(.1)
+         if shutdown:
+            hat.set_rotation(180)
+            hat.set_pixels(off)
+            sleep(1)
+            hat.clear()
+            path = 'sudo shutdown -P now '
+            os.system (path)
          else:
-            showqubits(maxpattern)
-
+           if thinking:
+              blinky(.1)
+           else:
+              showqubits(maxpattern)
 
 # Instantiate an instance of our glow class
 
@@ -303,6 +332,10 @@ while True:
             goAgain=True
             blinky(.001)
             hat.set_pixels(pixels)
+         if event.action == 'held' and event.direction =='middle':
+            shutdown=True
+
+            
       if (process_time()-myTimer>10):       # 10 seconds elapsed -- go now
             goAgain=True
 
