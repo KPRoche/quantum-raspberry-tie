@@ -80,5 +80,6 @@ My Raspberry Pi came with VNC Server already installed. While my worksite has a 
        ```raspbian
        sudo reboot
        ```
-       And your demonstration program should autolaunch in a window on the Pi desktop once it finishes booting!
+       
+  ## And now your demonstration program should autolaunch in a window on the Pi desktop once it finishes booting!
 
