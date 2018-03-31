@@ -19,6 +19,7 @@ Actual calculations are run using the quantum simulator backend for the quantum 
 
 ## Prerequisites
 You will need a Raspberry Pi 3 running at least the Jessie release of Raspbian, with a SenseHat hat properly installed.
+**Note** I found it much easier to get working reliably by doing a fresh install of Raspbian Stretch and going from there.  
 If your processor did not come with the SenseHat libraries pre-installed, you must install them.
      https://www.raspberrypi.org/documentation/hardware/sense-hat/
      
