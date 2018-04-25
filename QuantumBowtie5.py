@@ -284,7 +284,8 @@ while True:
    if p==200:
        backend_status = api.backend_status(backend)  # check the availability
        print(backend_status)
-       if not backend_status['busy']:
+       #if not backend_status['busy']:   NOTE: the data returned in backend_status changed so now look for available rather than busy
+       if backend_status['available']:
            xpname='Experiment #{:%Y%m%d%H%M%S}'.format(datetime.datetime.now())
            qasms=[{'qasm':qasm}]
            jobs=api.run_job(qasms, backend ,8192,1)  # send the QASM code
