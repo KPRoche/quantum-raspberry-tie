@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 #     QuantumBowtiePing
-#       by KPRoche (Kevin P. Roche) (c) 2017, 2018
+#       by KPRoche (Kevin P. Roche) (c) 2017
 #
 #     Connect to the IBM Quantum Experience site via the QISKIT api functions
 #             in qiskit-api-py and run OPENQASM code on the simulator there
@@ -10,8 +10,6 @@
 #     Use a ping function to try to make sure the website is available before
 #             sending requests and thus avoid more hangs that way
 #     Move the QASM code into an outside file
-#
-#     March 2018: add shutdown by pressing and holding SpaceHat joystick button
 #----------------------------------------------------------------------
 
 
@@ -31,11 +29,12 @@ from IBMQuantumExperience import IBMQuantumExperience  # class for accessing the
 # some variables we are going to need as we start up
 
 # you must replace the string in the next statement with the Personal Access Token for your Quantum Experience account
-#myAPItoken="REPLACE_THIS_STRING_WITH_YOUR_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN"
+myAPItoken="REPLACE_THIS_STRING_WITH_YOUR_QUANTUM_EXPERIENCE_PERSONAL_ACCESS_TOKEN"
 
 
+runcounter=0
 maxpattern='00000'
-
+interval=10
 hat = SenseHat() # instantiating hat right away so we can use it in functions
 thinking=False    # used to tell the display thread when to show the result
 shutdown=False    # used to tell the display thread to trigger a shutdown
@@ -190,7 +189,7 @@ def showqubits(pattern='00000'):
 #
 #------------------------------------------------------
 
-def blinky(time=10,experimentID=''):
+def blinky(time=20,experimentID=''):
    global pixels,hues,experiment
    #resetrainbow()
    count=0
@@ -273,18 +272,19 @@ else:                            # otherwise print it to the console for referen
     print("OPENQASM code to send:\n",qasm)
     
 
-backend='ibmqx_qasm_simulator'             # specify the simulator as the backend
-
+backend='ibmq_qasm_simulator'             # specify the simulator as the backend
+#backend='simulator' 
 rainbowTie.start()                          # start the display thread
 
 
 while True:
+   runcounter += 1
    thinking = True
+   expterror=True
    p=ping()
    if p==200:
        backend_status = api.backend_status(backend)  # check the availability
        print(backend_status)
-       #if not backend_status['busy']:   NOTE: the data returned in backend_status changed so now look for available rather than busy
        if backend_status['available']:
            xpname='Experiment #{:%Y%m%d%H%M%S}'.format(datetime.datetime.now())
            qasms=[{'qasm':qasm}]
@@ -293,9 +293,15 @@ while True:
            experiment_info=jobs['qasms'][0]
            experimentID=experiment_info['executionId']                     # pull out the experiment ID
 
-           print(experiment_info['status'],experiment_info['executionId'])
-
-           experiment=api.get_result_from_execution(experimentID)     # get the result
+           print(runcounter,": ",experiment_info['status'],experiment_info['executionId'])
+           while expterror:
+             try:
+               experiment=api.get_result_from_execution(experimentID)     # get the result
+             except:
+               print(experiment)
+             else:
+               expterror=False
+               
            while not experiment:
              experiment=api.get_result_from_execution(experimentID)     # get the result
              if not experiment:
@@ -328,6 +334,6 @@ while True:
             shutdown=True 
 
            
-      if (process_time()-myTimer>10):       # 10 seconds elapsed -- go now
+      if (process_time()-myTimer>interval):       # 10 seconds elapsed -- go now
             goAgain=True
 
