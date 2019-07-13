@@ -4,12 +4,12 @@ Your Raspberry Pi running code on the IBM Q quantum processors via Python 3 -- w
 ## New Version uses full qiskit library
 
 This code is specifically designed to run on a Raspberry Pi 3 with the SenseHat installed. The 8x8 array on the SenseHat is used to display the results.
-The QuantumBowtie5.py runs a 5-qubit program and displays it in a manner corresponding to the IBM 5-qubit "bowtie" quantum processor.
+The QuantumBowtie5 runs a 5-qubit program and displays it in a manner corresponding to the IBM 5-qubit "bowtie" quantum processor.
 <br/><img src='ibm_qubit_cpu.jpg' width='200' alt='IBM 5 qubit processor' style='float:left;'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <img src='RaspberryTieOutput.png' width='200' alt='Output displayed on the SenseHat' style='float:right;'><br/> 
 (It's called a bowtie because of the arrangement of the 5 qubits, and the particular ways they can interconnect via entanglement. Each of those rectangles touched by a squiggly line in the image on the left holds a qubit.)
 
-The QuantumRaspberry16.py code can run and display an program corresponding to a 16-qubit processor
+The QuantumRaspberry16 code can run and display an program corresponding to a 16-qubit processor
 <br /><img src='ibm_16_qubit_processor-100722935-large.3x2.jpg' width='200' alt='IBM 16 qubit processor' style='float:left;'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <img src='16-bitRpi-result.JPG' width='200' alt='16 qubit Output displayed on the SenseHat' style='float:right;'><br/>
 
@@ -20,7 +20,7 @@ Actual calculations are run using the quantum simulator backend for the quantum 
 # Installation
 
 ## Prerequisites
-You will need a Raspberry Pi 3 running at least the Jessie release of Raspbian, with a SenseHat hat properly installed.
+You will need a Raspberry Pi 3 running at least the _Jessie_ release of Raspbian, with a SenseHat hat properly installed.
 **Note** I found it much easier to get working reliably by doing a fresh install of Raspbian Stretch and going from there.  
 If your processor did not come with the SenseHat libraries pre-installed, you must install them.
      https://www.raspberrypi.org/documentation/hardware/sense-hat/
@@ -30,7 +30,7 @@ Your Raspberry Pi must have an active internet connection for the API to functio
 You will need to install the **qiskit library**
      https://github.com/QISKit/
      
-**IMPORTANT:** this new version does require the complete QISKit library, only this API library! 
+**IMPORTANT:** this new version does require the complete QISKit library, not the simpler API library used before! 
 Installing Qiskit and the SenseHat libraries on a Raspberry Pi can be quite complicated; I hope to add more information on the correct sequence of steps to do so. I have successfully installed everything on Raspbian _buster_ running berryconda (python 3.6.6), but it took a bit of work and required compiling 
 
 If your Raspberry Pi has more than one version of Python installed, be sure to install the QISKit API library for your Python 3 interpreter!
@@ -63,9 +63,11 @@ In each cycle, the status of the backend is checked and printed to the console, 
 To stop the program and shut down the Pi, press and hold the joystick button on the SenseHat. The color display will stop cycling, it will briefly display **OFF** on the LED array, and then the Pi will shut down. When the green light on the Pi stops flashing, it is safe to disconnect power.
 
 
-**QuantumRaspberry16.py** -- This version has not yet been updated to use the new authentication. It will run exactly the same way, but is set up to display a 16-qubit result on the SENSEHAT. It uses  the file _expt16.qasm_ to load its OPENQASM source code.
+**QuantumRaspberry16.qiskit.py** -- this runs exactly the same way, but is set up to display a 16-qubit result on the SENSEHAT. It uses  the file _expt16.qasm_ to load its OPENQASM source code.
 
 Both versions run the display by spawning a second thread. As long as the variable *thinking* is True, the rainbow cycle is run. If it is False, the value of the string variable *maxpattern* is translated into the red and blue qubit display.
+
+The "blinky" and "showqubits" functions in the code are generalized to work with a global *display* variable. Setting that to equal the list defining the 5-qubit processor (ibm_qx5) will result in the bowtie display, setting it equal to the 16 (ibm_qx16) will result in the 16 bit display.
 
 ## The OPENQASM code being run
 The program being run on the 5-qubit processor is very simple. 5 qubits are initialized to the ground state, a Hadamard gate is applied to each one to place it into a state of full superposition, then each is measured. The net effect is a 5-bit random number generator. Only 10 shots are run, so one pattern should always randomly end up higher in the results. The code is found in the variable *qasm* in both versions. It looks like this:
