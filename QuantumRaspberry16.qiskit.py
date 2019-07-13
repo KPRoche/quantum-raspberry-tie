@@ -1,5 +1,7 @@
+#!/usr/bin/python3
+
 #----------------------------------------------------------------------
-#     QuantumBowtiePing.qiskit
+#     QuantumRaspberry16
 #       by KPRoche (Kevin P. Roche) (c) 2017,2018,2019
 #
 #     Connect to the IBM Quantum Experience site via the QISKIT IBMQ functions
@@ -10,6 +12,7 @@
 #     Use a ping function to try to make sure the website is available before
 #             sending requests and thus avoid more hangs that way
 #     Move the QASM code into an outside file
+#
 #     March 2018 -- Detect a held center switch on the SenseHat joystick to trigger shutdown
 #     July 2019 -- convert to using QISKIT full library authentication and quantum circuit
 #                    techniques
@@ -49,13 +52,14 @@ print("Setting up...")
 
 result = None
 runcounter=0
-maxpattern='00000'
+maxpattern='000000000000000000'
 interval=5
 hat = SenseHat() # instantiating hat right away so we can use it in functions
 thinking=False    # used to tell the display thread when to show the result
 shutdown=False    # used to tell the display thread to trigger a shutdown
 qdone=False
 showlogo=False
+
 
 ###########################################################################################
 #-------------------------------------------------------------------------------    
@@ -216,7 +220,7 @@ class glow():
 #----------------------------------------------------------------
 # Set the display size and Turn on the display with an IBM "Q" logo
 #----------------------------------------------------------------
-display=ibm_qx5
+display=ibm_qx16
 hat.set_rotation(180)
 hat.set_pixels(Qlogo)
 
@@ -224,6 +228,7 @@ hat.set_pixels(Qlogo)
 ##################################################################
 #   Input file functions
 ##################################################################
+
 
 #----------------------------------------------------------
 # find our experiment file... alternate can be specified on command line
@@ -236,24 +241,26 @@ print(sys.argv)
 if (len(sys.argv) > 1) and type(sys.argv[1]) is str:
   qasmfilename=sys.argv[1]
 else:
-  qasmfilename='expt.qasm'
+  qasmfilename='expt16.qasm'
 if ('/' not in qasmfilename):
   qasmfilename=scriptfolder+"/"+qasmfilename
 if (not os.path.isfile(qasmfilename)):
-    qasmfilename=scriptfolder+"/"+'expt.qasm'
+    qasmfilename=scriptfolder+"/"+'expt16.qasm'
     
 print("OPENQASM file: ",qasmfilename)
 if (not os.path.isfile(qasmfilename)):
     print("QASM file not found... exiting.")
     exit()
 
+
 ###############################################################
 #   Connection functions
 #       ping and authentication
 ###############################################################
 
+
 #----------------------------------------------------------------------------
-# set up a ping function so we can confirm the IBMQ can connect before we attempt it
+# set up a ping function so we can confirm the API can connect before we attempt it
 #           ping uses the requests library
 #           based on pi-ping by Wesley Archer (raspberrycoulis) (c) 2017
 #           https://github.com/raspberrycoulis/Pi-Ping
@@ -304,6 +311,7 @@ def startIBMQ():
 #-------------------------------------------------------------------------------
 
 
+
 #################################################################################
 #
 #   Main program loop  (note: we turned on a "Q" earlier at line 202)
@@ -316,10 +324,11 @@ def startIBMQ():
 print("Instantiating glow...")
 glowing = glow()
 
+
 #-------------------------------------------------
 #  OK, let's get this shindig started
 #-------------------------------------------------
-            
+
 rainbowTie = Thread(target=glowing.run)     # create the display thread
 startIBMQ()                                  # try to connect and instantiate the IBMQ 
 
