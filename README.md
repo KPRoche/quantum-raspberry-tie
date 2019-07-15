@@ -53,11 +53,12 @@ Both require that the **sense-hat** and **qiskit** libraries be installed in ord
 This program tries to test its connection to the IBM Q website before making requests. It's designed to cope somewhat gracefully with what happens if you are running on batteries and your Raspberry Pi switches wireless access points as you move around, or are in a somewhat glitchy wifi environment.
 
 To start the program, simply call it from its directory (on my system, the default version of python is python 3.6.6; add the version number if that is not true on your system):
-     *python QuantumRaspberryTie*
++     *python QuantumRaspberryTie*  
           will launch with the default (5-qubit) quantum circuit 
-     *python QuantumRaspberryTie 16*
+          
++     *python QuantumRaspberryTie 16*  
           will launch with the 16-qubit circuit
-     *python QuantumRaspberryTie* _yourprogram.qasm_
++     *python QuantumRaspberryTie* _yourprogram.qasm_  
           will launch and attempt to load the circuit specified in file _yourprogram.qasm_
 
 After loading libraries, the program checks the SenseHat accelerometer to see which way the Pi is oriented. If it is flat on a table, "up" will be towards the power and display connectors on the Pi. If you wish to change the display orientation, simply hold the pi in the orientation you want until an up arrow appears on the display. The program will now use that orientation until the next time it is started.
