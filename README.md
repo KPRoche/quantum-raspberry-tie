@@ -42,8 +42,8 @@ You must have an account set up at the IBM Quantum Experience and obtain your Pe
 
 ## Customizing the code for your use
 You will need to use the IBMQ.save_account() method to store your API token on your Raspberry Pi.
-Download the source code for the QuantumRaspberryTie program and it code should be ready to run!
-Be sure to download the OPENQASM files as well (_expt.qasm_ & _expt16.qasm_) for the probram and put it in the same directory as your source file.
+Download the source code for the QuantumRaspberryTie program and the code should be ready to run!
+Be sure to download the OPENQASM files as well (_expt.qasm_ & _expt16.qasm_) for the probram and put them in the same directory as your source file.
 
 # Versions
 There is now a single version of the code, which can run in one of two modes. 
