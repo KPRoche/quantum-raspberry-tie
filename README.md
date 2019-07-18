@@ -61,7 +61,7 @@ To start the program, simply call it from its directory (on my system, the defau
 +     *python QuantumRaspberryTie* _yourprogram.qasm_  
           will launch and attempt to load the circuit specified in file _yourprogram.qasm_
 
-After loading libraries, the program checks the SenseHat accelerometer to see which way the Pi is oriented. If it is flat on a table, "up" will be towards the power and display connectors on the Pi. If you wish to change the display orientation, simply hold the pi in the orientation you want until an up arrow appears on the display. The program will now use that orientation until the next time it is started.
+After loading libraries, the program checks the SenseHat accelerometer to see which way the Pi is oriented. If it is flat on a table, "up" will be towards the power and display connectors on the Pi. If you wish to change the display orientation, simply hold the pi in the orientation you want until an up arrow appears on the display. The program will now use that orientation until the next cycle.
 
 The program then pings the IBM Q Experience website to make sure it has a connection; if not it will exit. 
 
@@ -69,7 +69,7 @@ It then loads the OPENQASM code for the experiment from a separarate text file, 
 
 If the ping is good, it then connects to the IBM Quantum Experience API using your token and initializes the LED display (displaying a Q). It compiles the OPENQASM code into a "quantum circuit", echoes the quantum circuit drawing to the terminal. and then sends the quantum circuit to the processor to execute. While it waits for the response, it cycles the light display through a rainbow shift to indicate that the system is "thinking". Once the result is returned by the processor, the measured values of the qubits are displayed as either red (measured 0) or blue (measured 1).
 
-The system will pause for a few seconds, then run the code again (flashing the Q as it starts) to display a new result. You may trigger a new run sooner by pressing the SenseHat joystick in any direction. 
+The system will pause for a few seconds, then run the code again (flashing the Q as it starts) to display a new result. You may trigger a new run sooner by pressing the SenseHat joystick in any direction. If you want to change which way on the display is "up" simply hold the Pi in the correct orientation until the Q displays as the cycle starts (the position is measured before sending the job).
 
 In each cycle, the status of the backend is checked and printed to the console, as is the quantum circuit diagram, then the probability value and measured bit pattern of the most-frequent result wich is used for the display
 
