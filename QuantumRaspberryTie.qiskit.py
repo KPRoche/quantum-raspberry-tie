@@ -228,30 +228,39 @@ class glow():
 #----------------------------------------------------------------
 # Set the display size and rotation Turn on the display with an IBM "Q" logo
 #----------------------------------------------------------------
-acceleration = hat.get_accelerometer_raw()
-x = acceleration['x']
-y = acceleration['y']
-z = acceleration['z']
-x=round(x, 0)
-y=round(y, 0)
-z=round(z, 0)
-print("current acceleration: ",x,y,z)
+def orient():
+    global hat,angle
+    acceleration = hat.get_accelerometer_raw()
+    x = acceleration['x']
+    y = acceleration['y']
+    z = acceleration['z']
+    x=round(x, 0)
+    y=round(y, 0)
+    z=round(z, 0)
+    print("current acceleration: ",x,y,z)
 
-if y == -1:
-    angle = 180
-elif y == 1:
-    angle = 0
-elif x == -1:
-    angle = 90
-elif x == 1:
-    angle = 270
-else:
-    angle = 180
-print("angle selected:",angle)
+    if y == -1:
+        angle = 180
+    elif y == 1:
+        angle = 0
+    elif x == -1:
+        angle = 90
+    elif x == 1:
+        angle = 270
+    #else:
+        #angle = 180
+    print("angle selected:",angle)
     
-display=ibm_qx16
-hat.set_rotation(angle)
+
+    hat.set_rotation(angle)
+
+# Now call the orient function and show an arrow
+
+orient()
+display=ibm_qx16    
 hat.set_pixels(Arrow)
+
+
 
 
 ##################################################################
@@ -396,6 +405,7 @@ while True:
        print("connection problem with IBMQ")
    else:
        if p==200:
+           orient()
            showlogo = True
            thinking = True
            backend_status = Q.status()  # check the availability
@@ -404,26 +414,32 @@ while True:
                
                print('     executing quantum circuit...')
                print(qcirc)
-               qjob=execute(qcirc, Q, shots=500, memory=False)
-               showlogo =  False
-               qdone = False
-               while not qdone:
-                   #result=qjob.result()     # get the result
-                   try:
-                       qstatus = qjob.status()
-                   except:
-                       print("Problem getting status, trying again...")
-                   else: 
-                       print(runcounter,": ",qstatus)
-                       if qstatus == JobStatus.DONE :
-                            qdone = True
-               # only get here once we get DONE status
-               result=qjob.result()     # get the result
-               counts=result.get_counts(qcirc)   
-               maxpattern=max(counts,key=counts.get)
-               maxvalue=counts[maxpattern]
-               print("Maximum value:",maxvalue, "Maximum pattern:",maxpattern)
-               thinking = False  # this cues the display thread to show the qubits in maxpattern
+               try:
+                   qjob=execute(qcirc, Q, shots=500, memory=False)
+               except:
+                   print("connection problem... half a tick and we'll try again...")
+                   sleep(.5)
+               else:
+                   # Don't bother with this part if the execute throws an exception     
+                   showlogo =  False
+                   qdone = False
+                   while not qdone:
+                       #result=qjob.result()     # get the result
+                       try:
+                           qstatus = qjob.status()
+                       except:
+                           print("Problem getting status, trying again...")
+                       else: 
+                           print(runcounter,": ",qstatus)
+                           if qstatus == JobStatus.DONE :
+                                qdone = True
+                   # only get here once we get DONE status
+                   result=qjob.result()     # get the result
+                   counts=result.get_counts(qcirc)   
+                   maxpattern=max(counts,key=counts.get)
+                   maxvalue=counts[maxpattern]
+                   print("Maximum value:",maxvalue, "Maximum pattern:",maxpattern)
+                   thinking = False  # this cues the display thread to show the qubits in maxpattern
                
            else:
                 print(backend,'busy; waiting to try again')
