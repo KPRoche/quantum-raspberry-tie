@@ -104,3 +104,5 @@ The color-shifting technique in the "thinking" display while waiting for the res
 
 The Ping function is based on that in the Pi-Ping program by Wesley Archer (c) 2017 
              https://github.com/raspberrycoulis/Pi-Ping
+
+I also want to acknowledge Alex Lennon of Dynamic Devices, whose work on a docker template for an IOT project gave me hints on getting the Qiskit install to work on my Raspberry Pi : https://github.com/DynamicDevices/does-rpi3-qiskit
