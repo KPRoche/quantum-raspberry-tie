@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------
-#     QuantumBowtiePing.qiskit
+#     QuantumRaspberryTie.qiskit
 #       by KPRoche (Kevin P. Roche) (c) 2017,2018,2019
 #
 #     Connect to the IBM Quantum Experience site via the QISKIT IBMQ functions
@@ -35,9 +35,10 @@ from time import sleep                 # used for delays
 print("       ....SenseHat")
 from sense_hat import SenseHat         # class for controlling the SenseHat
 print("       ....qiskit")
-from qiskit import IBMQ, QuantumCircuit, execute, transpile               # classes for accessing the Quantum Experience IBMQ
+from qiskit import IBMQ, QuantumCircuit, execute, transpile, qiskit               # classes for accessing the Quantum Experience IBMQ
 print("       ....qiskit.providers JobStatus")
 from qiskit.providers import JobStatus
+IBMQVersion = qiskit.__qiskit_version__
 # This is temporary because the libraries are changing again
 import warnings
 print("       ....warnings")
@@ -343,12 +344,18 @@ def ping(website='https://quantumexperience.ng.bluemix.net',repeats=1,wait=0.5,v
 #       If we get a 200 response, the site is live and we initialize our connection to it
 #-------------------------------------------------------------------------------
 def startIBMQ():
-    #global IBMQ
+    global Q
+    
+    IBMQP_Vers=float(IBMQVersion['qiskit-ibmq-provider'][:3])
+    print('IBMQ Provider v',IBMQP_Vers)
     print ('Pinging IBM Quantum Experience before start')
     p=ping('https://api.quantum-computing.ibm.com',1,0.5,True)
 
     if p==200:
-        IBMQ.load_accounts()
+
+        provider0=IBMQ.load_account()
+        backend='ibmq_qasm_simulator'             # specify the simulator as the backend
+        Q=provider0.get_backend(backend)
     else:
         exit()
 #-------------------------------------------------------------------------------
@@ -391,10 +398,10 @@ else:
     display = ibm_qx5
     maxpattern='00000'
     print ("circuit width: ",qcirc.width()/2," using 5 qubit display")
-backend='ibmq_qasm_simulator'             # specify the simulator as the backend
+
 #backend='simulator' 
 rainbowTie.start()                          # start the display thread
-Q=IBMQ.get_backend(backend)
+
 
 while True:
    runcounter += 1
