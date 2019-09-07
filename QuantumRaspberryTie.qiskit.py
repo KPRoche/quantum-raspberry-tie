@@ -13,6 +13,9 @@
 #     March 2018 -- Detect a held center switch on the SenseHat joystick to trigger shutdown
 #     July 2019 -- convert to using QISKIT full library authentication and quantum circuit
 #                    techniques
+#
+#     September 2019 -- adaptive version can use either new (0.3) ibmq-provider with provider object
+#                         or older (0.2) IBMQ object
 #----------------------------------------------------------------------
 
 
@@ -38,7 +41,7 @@ print("       ....qiskit")
 from qiskit import IBMQ, QuantumCircuit, execute, transpile, qiskit               # classes for accessing the Quantum Experience IBMQ
 print("       ....qiskit.providers JobStatus")
 from qiskit.providers import JobStatus
-IBMQVersion = qiskit.__qiskit_version__
+#IBMQVersion = qiskit.__qiskit_version__
 # This is temporary because the libraries are changing again
 import warnings
 print("       ....warnings")
@@ -345,17 +348,22 @@ def ping(website='https://quantumexperience.ng.bluemix.net',repeats=1,wait=0.5,v
 #-------------------------------------------------------------------------------
 def startIBMQ():
     global Q
-    
+    # Written to work with versions of IBMQ-Provider both before and after 0.3
+    IBMQVersion = qiskit.__qiskit_version__
     IBMQP_Vers=float(IBMQVersion['qiskit-ibmq-provider'][:3])
     print('IBMQ Provider v',IBMQP_Vers)
     print ('Pinging IBM Quantum Experience before start')
     p=ping('https://api.quantum-computing.ibm.com',1,0.5,True)
-
+    # specify the simulator as the backend
+    backend='ibmq_qasm_simulator'   
     if p==200:
-
-        provider0=IBMQ.load_account()
-        backend='ibmq_qasm_simulator'             # specify the simulator as the backend
-        Q=provider0.get_backend(backend)
+        if (IBMQP_Vers > 0.2):   # The new authentication technique with provider as the object
+            provider0=IBMQ.load_account()
+            Q=provider0.get_backend(backend)
+        else:                    # The older IBMQ authentication technique
+            IBMQ.load_accounts()
+            Q=IBMQ.get_backend(backend)
+            
     else:
         exit()
 #-------------------------------------------------------------------------------
