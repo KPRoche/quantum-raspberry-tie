@@ -1,5 +1,5 @@
 #----------------------------------------------------------------------
-#     QuantumBowtiePing.qiskit
+#     QuantumRaspberryTie.qiskit
 #       by KPRoche (Kevin P. Roche) (c) 2017,2018,2019
 #
 #     Connect to the IBM Quantum Experience site via the QISKIT IBMQ functions
@@ -13,6 +13,9 @@
 #     March 2018 -- Detect a held center switch on the SenseHat joystick to trigger shutdown
 #     July 2019 -- convert to using QISKIT full library authentication and quantum circuit
 #                    techniques
+#
+#     September 2019 -- adaptive version can use either new (0.3) ibmq-provider with provider object
+#                         or older (0.2) IBMQ object
 #----------------------------------------------------------------------
 
 
@@ -35,9 +38,10 @@ from time import sleep                 # used for delays
 print("       ....SenseHat")
 from sense_hat import SenseHat         # class for controlling the SenseHat
 print("       ....qiskit")
-from qiskit import IBMQ, QuantumCircuit, execute, transpile               # classes for accessing the Quantum Experience IBMQ
+from qiskit import IBMQ, QuantumCircuit, execute, transpile, qiskit               # classes for accessing the Quantum Experience IBMQ
 print("       ....qiskit.providers JobStatus")
 from qiskit.providers import JobStatus
+#IBMQVersion = qiskit.__qiskit_version__
 # This is temporary because the libraries are changing again
 import warnings
 print("       ....warnings")
@@ -343,12 +347,23 @@ def ping(website='https://quantumexperience.ng.bluemix.net',repeats=1,wait=0.5,v
 #       If we get a 200 response, the site is live and we initialize our connection to it
 #-------------------------------------------------------------------------------
 def startIBMQ():
-    #global IBMQ
+    global Q
+    # Written to work with versions of IBMQ-Provider both before and after 0.3
+    IBMQVersion = qiskit.__qiskit_version__
+    IBMQP_Vers=float(IBMQVersion['qiskit-ibmq-provider'][:3])
+    print('IBMQ Provider v',IBMQP_Vers)
     print ('Pinging IBM Quantum Experience before start')
     p=ping('https://api.quantum-computing.ibm.com',1,0.5,True)
-
+    # specify the simulator as the backend
+    backend='ibmq_qasm_simulator'   
     if p==200:
-        IBMQ.load_accounts()
+        if (IBMQP_Vers > 0.2):   # The new authentication technique with provider as the object
+            provider0=IBMQ.load_account()
+            Q=provider0.get_backend(backend)
+        else:                    # The older IBMQ authentication technique
+            IBMQ.load_accounts()
+            Q=IBMQ.get_backend(backend)
+            
     else:
         exit()
 #-------------------------------------------------------------------------------
@@ -391,10 +406,10 @@ else:
     display = ibm_qx5
     maxpattern='00000'
     print ("circuit width: ",qcirc.width()/2," using 5 qubit display")
-backend='ibmq_qasm_simulator'             # specify the simulator as the backend
+
 #backend='simulator' 
 rainbowTie.start()                          # start the display thread
-Q=IBMQ.get_backend(backend)
+
 
 while True:
    runcounter += 1
