@@ -45,7 +45,9 @@ You must have an account set up at the IBM Quantum Experience and obtain your Pe
 
 ## Customizing the code for your use
 **Qiskit v0.9.0** You will need to use the IBMQ.save_account() method to store your API token on your Raspberry Pi.
+
 **Qiskit v0.12.0** You will need to use the new methods to store your API token. If you have upgraded from v0.9, follow the instructions to use the IBMQ.update_account() method.
+
 The real difference between these two versions is in the authentication technique in qiskit-ibmq-provider. The new version (0.3.x) uses a _provider_ object for connections to the backend while the previous version used the IBMQ object.
 
 Download the source code for the QuantumRaspberryTie program and the code should be ready to run!
