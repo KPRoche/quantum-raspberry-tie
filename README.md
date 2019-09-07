@@ -1,7 +1,8 @@
 # quantum-raspberry-tie
 Your Raspberry Pi running code on the IBM Q quantum processors via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat!
+## Second Release: Adaptive to version of Qiskit installed
 
-## First Release: New Version uses full qiskit library, detects orientation
+### (Update from First Release: New Version uses full qiskit library, detects orientation)
 
 This code is specifically designed to run on a Raspberry Pi 3 with the SenseHat installed. The 8x8 array on the SenseHat is used to display the results.
 If the Pi is held with on edge, the accelerometer is used to determine which edge is "up" and orients the qubit display accordingly (default is "up" equals towards the HDMI and USB power in ports).
@@ -36,12 +37,17 @@ You will need to install the **qiskit library**
 **IMPORTANT:** this new version does require the complete QISKit library, not the simpler API library used before! 
 Installing Qiskit and the SenseHat libraries on a Raspberry Pi can be quite complicated; I hope to add more information on the correct sequence of steps to do so. I have successfully installed everything on Raspbian _buster_ running berryconda (python 3.6.6), but it took a bit of work and required compiling 
 
+**Release 2 is compatible with both Qiskit v0.9 and Qiskit v0.12 if you have created your stored credentials properly**
+
 If your Raspberry Pi has more than one version of Python installed, be sure to install the QISKit API library for your Python 3 interpreter!
 
 You must have an account set up at the IBM Quantum Experience and obtain your Personal Access Token from the My Account settings. The introductory material for the IBM Quantum Experience explains how to get that token.
 
 ## Customizing the code for your use
-You will need to use the IBMQ.save_account() method to store your API token on your Raspberry Pi.
+**Qiskit v0.9.0** You will need to use the IBMQ.save_account() method to store your API token on your Raspberry Pi.
+**Qiskit v0.12.0** You will need to use the new methods to store your API token. If you have upgraded from v0.9, follow the instructions to use the IBMQ.update_account() method.
+The real difference between these two versions is in the authentication technique in qiskit-ibmq-provider. The new version (0.3.x) uses a _provider_ object for connections to the backend while the previous version used the IBMQ object.
+
 Download the source code for the QuantumRaspberryTie program and the code should be ready to run!
 Be sure to download the OPENQASM files as well (_expt.qasm_ & _expt16.qasm_) for the probram and put them in the same directory as your source file.
 
