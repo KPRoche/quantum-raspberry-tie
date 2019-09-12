@@ -41,7 +41,7 @@ print("       ....qiskit")
 from qiskit import IBMQ, QuantumCircuit, execute, transpile, qiskit               # classes for accessing the Quantum Experience IBMQ
 print("       ....qiskit.providers JobStatus")
 from qiskit.providers import JobStatus
-#IBMQVersion = qiskit.__qiskit_version__
+IBMQVersion = qiskit.__qiskit_version__
 # This is temporary because the libraries are changing again
 import warnings
 print("       ....warnings")
@@ -56,6 +56,7 @@ result = None
 runcounter=0
 maxpattern='00000'
 interval=5
+stalled_time = 60 # how many seconds we're willing to wait once a job status is "Running"
 hat = SenseHat() # instantiating hat right away so we can use it in functions
 thinking=False    # used to tell the display thread when to show the result
 shutdown=False    # used to tell the display thread to trigger a shutdown
@@ -347,9 +348,8 @@ def ping(website='https://quantumexperience.ng.bluemix.net',repeats=1,wait=0.5,v
 #       If we get a 200 response, the site is live and we initialize our connection to it
 #-------------------------------------------------------------------------------
 def startIBMQ():
-    global Q
-    # Written to work with versions of IBMQ-Provider both before and after 0.3
-    IBMQVersion = qiskit.__qiskit_version__
+    global Q, backend
+    # Written to work with versions of IBMQ-Provider both before and after 0.3 
     IBMQP_Vers=float(IBMQVersion['qiskit-ibmq-provider'][:3])
     print('IBMQ Provider v',IBMQP_Vers)
     print ('Pinging IBM Quantum Experience before start')
@@ -423,41 +423,55 @@ while True:
            orient()
            showlogo = True
            thinking = True
-           backend_status = Q.status()  # check the availability
-           print('Backend Status: ',backend_status.status_msg)
-           if Q.status().status_msg == 'active':
-               
-               print('     executing quantum circuit...')
-               print(qcirc)
-               try:
-                   qjob=execute(qcirc, Q, shots=500, memory=False)
-               except:
-                   print("connection problem... half a tick and we'll try again...")
-                   sleep(.5)
-               else:
-                   # Don't bother with this part if the execute throws an exception     
-                   showlogo =  False
-                   qdone = False
-                   while not qdone:
-                       #result=qjob.result()     # get the result
-                       try:
-                           qstatus = qjob.status()
-                       except:
-                           print("Problem getting status, trying again...")
-                       else: 
-                           print(runcounter,": ",qstatus)
-                           if qstatus == JobStatus.DONE :
-                                qdone = True
-                   # only get here once we get DONE status
-                   result=qjob.result()     # get the result
-                   counts=result.get_counts(qcirc)   
-                   maxpattern=max(counts,key=counts.get)
-                   maxvalue=counts[maxpattern]
-                   print("Maximum value:",maxvalue, "Maximum pattern:",maxpattern)
-                   thinking = False  # this cues the display thread to show the qubits in maxpattern
-               
+           try:
+               backend_status = Q.status()  # check the availability
+           except:
+               print('Problem getting backend status... waiting to try again')
            else:
-                print(backend,'busy; waiting to try again')
+               print('Backend Status: ',backend_status.status_msg)
+               if Q.status().status_msg == 'active':
+                   
+                   print('     executing quantum circuit...')
+                   print(qcirc)
+                   try:
+                       qjob=execute(qcirc, Q, shots=500, memory=False)
+                   except:
+                       print("connection problem... half a tick and we'll try again...")
+                       sleep(.5)
+                   else:
+                       # Don't bother with this part if the execute throws an exception     
+                       running_start = 0
+                       running_timeout = False
+                       showlogo =  False
+                       qdone = False
+                       while not (qdone or running_timeout):
+                           #result=qjob.result()     # get the result
+                           try:
+                               qstatus = qjob.status()
+                           except:
+                               print("Problem getting status, trying again...")
+                           else:
+                               print(runcounter,": ",qstatus)
+                               if qstatus == JobStatus.RUNNING :
+                                    if running_start == 0 :
+                                       running_start = process_time()
+                                    else :
+                                        if process_time()-running_start > stalled_time :
+                                            running_timeout = True                               
+                               if qstatus == JobStatus.DONE :
+                                    qdone = True
+                       if qdone :
+                           # only get here once we get DONE status
+                           result=qjob.result()     # get the result
+                           counts=result.get_counts(qcirc)   
+                           maxpattern=max(counts,key=counts.get)
+                           maxvalue=counts[maxpattern]
+                           print("Maximum value:",maxvalue, "Maximum pattern:",maxpattern)
+                           thinking = False  # this cues the display thread to show the qubits in maxpattern
+                       if running_timeout :
+                            print(backend,' Queue appears to have stalled. Restarting Job.')    
+               else:
+                    print(backend,'busy; waiting to try again')
        else:
             print(p,'response to ping; waiting to try again')
 
