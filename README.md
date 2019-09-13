@@ -1,6 +1,6 @@
 # quantum-raspberry-tie
 Your Raspberry Pi running code on the IBM Q quantum processors via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat!
-## Second Release: Adaptive to version of Qiskit installed
+## Second Release: Adaptive to version of Qiskit installed (v2.1 added comms stall exception handling)
 
 ### (Update from First Release: New Version uses full qiskit library, detects orientation)
 
@@ -58,7 +58,7 @@ There is now a single version of the code, which can run in one of two modes.
 Both require that the **sense-hat** and **qiskit** libraries be installed in order to function, and use the **threading**, **time**, and **datetime** modules.
 
 ## QuantumRaspberryTie.qiskit.py
-This program tries to test its connection to the IBM Q website before making requests. It's designed to cope somewhat gracefully with what happens if you are running on batteries and your Raspberry Pi switches wireless access points as you move around, or are in a somewhat glitchy wifi environment.
+This program tries to test its connection to the IBM Q website before making requests. It's designed to cope somewhat gracefully with what happens if you are running on batteries and your Raspberry Pi switches wireless access points as you move around, or are in a somewhat glitchy wifi environment. It also can now handle gracefully communications timeouts with the IBM Q backend, or the occasional glitch where the simulator queue status for a job gets stuck in "RUNNING" state.
 
 To start the program, simply call it from its directory (on my system, the default version of python is python 3.6.6; add the version number if that is not true on your system):
 +     *python QuantumRaspberryTie*  
