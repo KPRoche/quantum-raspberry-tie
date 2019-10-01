@@ -1,11 +1,11 @@
 # quantum-raspberry-tie
 Your Raspberry Pi running code on the IBM Q quantum processors via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat!
-## Second Release: Adaptive to version of Qiskit installed (v2.1 added comms stall exception handling)
-
-### (Update from First Release: New Version uses full qiskit library, detects orientation)
+## Third Release: will fail over to SenseHat emulator if no SenseHat hardware is detected.
 
 This code is specifically designed to run on a Raspberry Pi 3 with the SenseHat installed. The 8x8 array on the SenseHat is used to display the results.
-If the Pi is held with on edge, the accelerometer is used to determine which edge is "up" and orients the qubit display accordingly (default is "up" equals towards the HDMI and USB power in ports).
+Alternatively, if no SenseHat is detected, it will launch and use the display on a SenseHat emulator session instead.
+
+If the Pi is held on edge, the accelerometer is used to determine which edge is "up" and orients the qubit display accordingly (default is "up" equals towards the HDMI and USB power in ports).
 This version asseses the QASM program being loaded and selects either a 5-qubit or 16-qubit display accordingly. The default is to load and run a 5-qubit random number-generating program.
 
 The 5-qubit display formats output in a manner corresponding to the IBM 5-qubit "bowtie" quantum processor.
@@ -31,7 +31,6 @@ If your processor did not come with the SenseHat libraries pre-installed, you mu
      
 Alternatively, you can install the SenseHat EMULATOR libraries instead, and simulate the SenseHat display on the emulator.
      https://sense-emu.readthedocs.io/en/v1.1/install.html
-If you use the emulator libraries, you will need to start the emulator before running your code, go into the preferences and set the Inertial Measurement Unit simulation to be **on**
      
 Your Raspberry Pi must have an active internet connection for the API to function properly
      
@@ -118,3 +117,10 @@ The Ping function is based on that in the Pi-Ping program by Wesley Archer (c) 2
              https://github.com/raspberrycoulis/Pi-Ping
 
 I also want to acknowledge Alex Lennon of Dynamic Devices, whose work on a docker template for an IOT project gave me hints on getting the Qiskit install to work on my Raspberry Pi : https://github.com/DynamicDevices/does-rpi3-qiskit
+
+## Release History ##
+*    v3 : auto-fail over to SenseHat emulator if no SenseHat hardware is detected.
+*    v2.1 : additional queue stall exception handling
+*    v2.0 : Adapt to version of Qiskit installed
+*    v1.0 : uses full Qiskit library; detects orientation of rPi and changes display angle.
+
