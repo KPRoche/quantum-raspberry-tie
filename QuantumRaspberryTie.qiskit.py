@@ -4,7 +4,7 @@
 #
 #     Connect to the IBM Quantum Experience site via the QISKIT IBMQ functions
 #             run OPENQASM code on the simulator there
-#     Display the results using the 8x8 LED array on a SenseHat
+#     Display the results using the 8x8 LED array on a SenseHat (or SenseHat emulator)
 #     Spin off the display functions in a separate thread so they can exhibit
 #             smooth color changes while "thinking"
 #     Use a ping function to try to make sure the website is available before
@@ -16,6 +16,8 @@
 #
 #     September 2019 -- adaptive version can use either new (0.3) ibmq-provider with provider object
 #                         or older (0.2) IBMQ object
+#     October 2019 -- will attempt to load SenseHat and connect to hardware.
+#                        If that fails, then loads and launches SenseHat emulator for display instead
 #----------------------------------------------------------------------
 
 
@@ -34,9 +36,7 @@ from colorsys import hsv_to_rgb        # used to build the color array
 print("       ....time")
 from time import process_time          # used for loop timer
 print("       ....sleep")
-from time import sleep                 # used for delays
-print("       ....SenseHat")
-from sense_hat import SenseHat         # class for controlling the SenseHat
+from time import sleep                 #used for delays
 print("       ....qiskit")
 from qiskit import IBMQ, QuantumCircuit, execute, transpile, qiskit               # classes for accessing the Quantum Experience IBMQ
 print("       ....qiskit.providers JobStatus")
@@ -45,19 +45,41 @@ IBMQVersion = qiskit.__qiskit_version__
 # This is temporary because the libraries are changing again
 import warnings
 print("       ....warnings")
-warnings.filterwarnings("ignore", category=DeprecationWarning) 
 
-# some variables we are going to need as we start up
+
+# Now we are going to try to instantiate the SenseHat.
+# if it fails, we'll try loading the emulator
+SenseHatEMU = False
+print ("... importing SenseHat and looking for hardware")
+try:
+    from sense_hat import SenseHat
+    hat = SenseHat() # instantiating hat right away so we can use it in functions
+except:
+    print ("... problem finding SenseHat")
+    print("       ....trying SenseHat Emulator instead")
+    from sense_emu import SenseHat         # class for controlling the SenseHat
+    hat = SenseHat() # instantiating hat emulator so we can use it in functions
+    while not SenseHatEMU:
+        try:
+            hat.set_imu_config(True,True,True) #initialize the accelerometer simulation
+        except:
+            time.sleep(1)
+        else:
+            SenseHatEMU = True
+
+
+
+# some variables and settings we are going to need as we start up
 
 print("Setting up...")
-
+warnings.filterwarnings("ignore", category=DeprecationWarning) 
 angle = 180
 result = None
 runcounter=0
 maxpattern='00000'
 interval=5
 stalled_time = 60 # how many seconds we're willing to wait once a job status is "Running"
-hat = SenseHat() # instantiating hat right away so we can use it in functions
+
 thinking=False    # used to tell the display thread when to show the result
 shutdown=False    # used to tell the display thread to trigger a shutdown
 qdone=False
@@ -246,7 +268,7 @@ def orient():
 
     if y == -1:
         angle = 180
-    elif y == 1:
+    elif y == 1 or SenseHatEMU:
         angle = 0
     elif x == -1:
         angle = 90
