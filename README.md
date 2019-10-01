@@ -24,10 +24,14 @@ The programs can trigger a shutdown of the Raspberry Pi by means of pressing and
 # Installation
 
 ## Prerequisites
-You will need a Raspberry Pi 3 running at least the _Jessie_ release of Raspbian, with a SenseHat hat properly installed.  
+You will need a Raspberry Pi 3 running at least the _Jessie_ release of Raspbian, with a SenseHat* hat properly installed.  
 **Note** I found it much easier to get working reliably by doing a fresh install of Raspbian Stretch (or Buster) and going from there.  
 If your processor did not come with the SenseHat libraries pre-installed, you must install them.
      https://www.raspberrypi.org/documentation/hardware/sense-hat/
+     
+Alternatively, you can install the SenseHat EMULATOR libraries instead, and simulate the SenseHat display on the emulator.
+     https://sense-emu.readthedocs.io/en/v1.1/install.html
+If you use the emulator libraries, you will need to start the emulator before running your code, go into the preferences and set the Inertial Measurement Unit simulation to be **on**
      
 Your Raspberry Pi must have an active internet connection for the API to function properly
      
