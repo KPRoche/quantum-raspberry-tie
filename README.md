@@ -86,6 +86,8 @@ In each cycle, the status of the backend is checked and printed to the console, 
 
 To stop the program and shut down the Pi, press and hold the joystick button on the SenseHat. The color display will stop cycling, it will briefly display **OFF** on the LED array, and then the Pi will shut down. When the green light on the Pi stops flashing, it is safe to disconnect power.
 
+**NOTE** If you are running using the SenseHat emulator and click and hold the emulator GUI joystick button, it *will* shut down your rPi. Don't leave unsaved files open if you are going to test this.
+
 Both versions run the display by spawning a second thread. As long as the variable *thinking* is True, the rainbow cycle is run. If it is False, the value of the string variable *maxpattern* is translated into the red and blue qubit display.
 
 The "blinky" and "showqubits" functions in the code are generalized to work with a global *display* variable. Setting that to equal the list defining the 5-qubit processor (ibm_qx5) will result in the bowtie display, setting it equal to the 16 (ibm_qx16) will result in the 16 bit display.
