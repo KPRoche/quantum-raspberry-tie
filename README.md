@@ -71,7 +71,17 @@ To start the program, simply call it from its directory (on my system, the defau
           will launch with the 16-qubit circuit
 +     *python QuantumRaspberryTie* _yourprogram.qasm_  
           will launch and attempt to load the circuit specified in file _yourprogram.qasm_
-
+          
+## New command line parameters (can be stacked with spaces between them) ##
++    *-e*
+          will launch and force use of the SenseHat emulator even if the SenseHat hardware is present
++    *-b:backendname*
+          will attempt to use the IBM Q Experience backend *backendname* instead of the simulator
+          if connection fails, it will fail back to the simulator
++    *-f:qasmfilename*
+          will attempt to load the circuit specified in the file *qasmfilename*
+          if it can't load the file, will fail back to *expt.qasm*
+     
 After loading libraries, the program checks the SenseHat accelerometer to see which way the Pi is oriented. If it is flat on a table, "up" will be towards the power and display connectors on the Pi. If you wish to change the display orientation, simply hold the pi in the orientation you want until an up arrow appears on the display. The program will now use that orientation until the next cycle.
 
 The program then pings the IBM Q Experience website to make sure it has a connection; if not it will exit. 
