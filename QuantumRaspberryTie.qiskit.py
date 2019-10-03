@@ -18,6 +18,8 @@
 #                         or older (0.2) IBMQ object
 #     October 2019 -- will attempt to load SenseHat and connect to hardware.
 #                        If that fails, then loads and launches SenseHat emulator for display instead
+#     October 2019 -- added extra command line parameters. Can force use of Sensehat emulator, or specify backend
+#                        (specifying use of a non-simulator backend will disable loop)
 #----------------------------------------------------------------------
 
 
@@ -98,6 +100,7 @@ if UseEmulator:
 print("Setting up...")
 # This (hiding deprecation warnings) is temporary because the libraries are changing again
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
+Looping = True    # this will be set false after the first go-round if a real backend is called
 angle = 180
 result = None
 runcounter=0
@@ -422,7 +425,7 @@ def startIBMQ():
             except:
                 Q=provider0.get_backend(backend)
             else:
-                interval = 5*60
+                interval = 300
         else:                    # The older IBMQ authentication technique
             IBMQ.load_accounts()
             try:
@@ -430,7 +433,7 @@ def startIBMQ():
             except:
                 Q=IBMQ.get_backend(backend)
             else:
-                interval = 5*60
+                interval = 300
     else:
         exit()
 #-------------------------------------------------------------------------------
@@ -478,7 +481,7 @@ else:
 rainbowTie.start()                          # start the display thread
 
 
-while True:
+while Looping:
    runcounter += 1
    
    try:
@@ -498,10 +501,12 @@ while True:
                print('Backend Status: ',backend_status.status_msg)
                if Q.status().status_msg == 'active':
                    
-                   print('     executing quantum circuit...')
+                   print('     executing quantum circuit... on ',Q.name())
                    print(qcirc)
                    try:
                        qjob=execute(qcirc, Q, shots=500, memory=False)
+                       Looping = 'simul' in Q.name()
+                       if runcounter < 3: print("Using ", Q.name(), " ... Looping is set ", Looping)
                    except:
                        print("connection problem... half a tick and we'll try again...")
                        sleep(.5)
