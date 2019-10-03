@@ -42,36 +42,61 @@ from qiskit import IBMQ, QuantumCircuit, execute, transpile, qiskit             
 print("       ....qiskit.providers JobStatus")
 from qiskit.providers import JobStatus
 IBMQVersion = qiskit.__qiskit_version__
-# This is temporary because the libraries are changing again
-import warnings
 print("       ....warnings")
+import warnings
 
 
-# Now we are going to try to instantiate the SenseHat.
-# if it fails, we'll try loading the emulator
+#Check any command arguments to see if we're forcing the emulator or changing the backend
+UseEmulator = False
+print(sys.argv)
+print ("Number of arguments: ",len(sys.argv))
+# look for a filename option or other starting parameters
+qasmfileinput='expt.qasm'
+if (len(sys.argv)>1):  
+    for p in range (1, len(sys.argv)):
+        parameter = sys.argv[p]
+        if type(parameter) is str:
+            print("Parameter ",p," ",parameter)
+            if '-e' in parameter: UseEmulator = True
+            elif ':' in parameter:
+                token = parameter.split(':')[0]
+                value = parameter.split(':')[1]
+                if '-b' in token: backendparm = value
+                elif '-f' in token: qasmfileinput = value
+            else:
+                #print (type(sys.argv[1]))
+                qasmfileinput=parameter
+              
+
+# Now we are going to try to instantiate the SenseHat, unless we have asked for the emulator.
+# if it fails, we'll try loading the emulator 
 SenseHatEMU = False
-print ("... importing SenseHat and looking for hardware")
-try:
-    from sense_hat import SenseHat
-    hat = SenseHat() # instantiating hat right away so we can use it in functions
-except:
-    print ("... problem finding SenseHat")
-    print("       ....trying SenseHat Emulator instead")
+if not UseEmulator:
+    print ("... importing SenseHat and looking for hardware")
+    try:
+        from sense_hat import SenseHat
+        hat = SenseHat() # instantiating hat right away so we can use it in functions
+    except:
+        print ("... problem finding SenseHat")
+        UseEmulator = True
+        print("       ....trying SenseHat Emulator instead")
+
+if UseEmulator:
+    print ("....importing SenseHat Emulator")
     from sense_emu import SenseHat         # class for controlling the SenseHat
     hat = SenseHat() # instantiating hat emulator so we can use it in functions
     while not SenseHatEMU:
         try:
             hat.set_imu_config(True,True,True) #initialize the accelerometer simulation
         except:
-            time.sleep(1)
+            sleep(1)
         else:
             SenseHatEMU = True
-
-
 
 # some variables and settings we are going to need as we start up
 
 print("Setting up...")
+# This (hiding deprecation warnings) is temporary because the libraries are changing again
 warnings.filterwarnings("ignore", category=DeprecationWarning) 
 angle = 180
 result = None
@@ -301,16 +326,16 @@ hat.set_pixels(Arrow)
 #def loadQASMfile():
 
 scriptfolder = os.path.dirname(os.path.realpath("__file__"))
-print(sys.argv)
-print ("Number of arguments: ",len(sys.argv))
+#print(sys.argv)
+#print ("Number of arguments: ",len(sys.argv))
 # look for a filename option
-if (len(sys.argv) > 1) and type(sys.argv[1]) is str:
+#if (len(sys.argv) > 1) and type(sys.argv[1]) is str:
   #print (type(sys.argv[1]))
-  qasmfilename=sys.argv[1]
-  print ("input arg:",qasmfilename)
-  if (qasmfilename == '16'):    qasmfilename='expt16.qasm' 
-else:
-  qasmfilename='expt.qasm'
+ # qasmfilename=sys.argv[1]
+#  print ("input arg:",qasmfilename)
+if (qasmfileinput == '16'):    qasmfilename='expt16.qasm' 
+else: qasmfilename = qasmfileinput
+  #qasmfilename='expt.qasm'
 
 #complete the path if necessary
 if ('/' not in qasmfilename):
@@ -322,6 +347,11 @@ print("OPENQASM file: ",qasmfilename)
 if (not os.path.isfile(qasmfilename)):
     print("QASM file not found... exiting.")
     exit()
+    
+# Parse any other parameters:
+
+
+
 # end DEF ----------------------
 
 ###############################################################
@@ -356,7 +386,7 @@ def ping(website='https://quantumexperience.ng.bluemix.net',repeats=1,wait=0.5,v
     elif int(response.status_code) == 524: # Cloudflare: A Timeout occurred
         msg = 'Cloudflare: A Timeout occurred'
     if verbose: print(response.status_code,msg)
-    if repeats>1: time.sleep(wait)
+    if repeats>1: sleep(wait)
     
   return int(response.status_code)
 # end DEF ----------------------------------------------------------------
@@ -376,16 +406,31 @@ def startIBMQ():
     print('IBMQ Provider v',IBMQP_Vers)
     print ('Pinging IBM Quantum Experience before start')
     p=ping('https://api.quantum-computing.ibm.com',1,0.5,True)
+    
+    try:
+        print("requested backend: ",backendparm)
+    except:
+        sleep(0)
+        
     # specify the simulator as the backend
     backend='ibmq_qasm_simulator'   
     if p==200:
         if (IBMQP_Vers > 0.2):   # The new authentication technique with provider as the object
             provider0=IBMQ.load_account()
-            Q=provider0.get_backend(backend)
+            try:
+                Q=provider0.get_backend(backendparm)
+            except:
+                Q=provider0.get_backend(backend)
+            else:
+                interval = 5*60
         else:                    # The older IBMQ authentication technique
             IBMQ.load_accounts()
-            Q=IBMQ.get_backend(backend)
-            
+            try:
+                Q=IBMQ.get_backend(backendparm)
+            except:
+                Q=IBMQ.get_backend(backend)
+            else:
+                interval = 5*60
     else:
         exit()
 #-------------------------------------------------------------------------------
