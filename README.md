@@ -1,6 +1,6 @@
 # quantum-raspberry-tie
 Your Raspberry Pi running code on the IBM Q quantum processors via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat (or SenseHat emulator)!
-## Third Release: will fail over to SenseHat emulator if no SenseHat hardware is detected.
+## Third Release: will fail over to SenseHat emulator if no SenseHat hardware is detected. You may opt to send your quantum circuit to an actual quantum processor backend at IBM Q instead of the simulator
 
 This code is specifically designed to run on a Raspberry Pi 3 with the SenseHat installed. The 8x8 array on the SenseHat is used to display the results.
 Alternatively, if no SenseHat is detected, it will launch and use the display on a SenseHat emulator session instead.
@@ -17,7 +17,7 @@ The 16 qubit display corresponds to a 16-qubit processor
 <br /><img src='ibm_16_qubit_processor-100722935-large.3x2.jpg' width='200' alt='IBM 16 qubit processor' style='float:left;'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <img src='16-bitRpi-result.JPG' width='200' alt='16 qubit Output displayed on the SenseHat' style='float:right;'><br/>
 
-Actual calculations are run using the quantum simulator backend for the quantum processor, to avoid overwhelming the physical processor in the IBM Q lab.
+Actual calculations are run using the quantum simulator backend for the quantum processor, to avoid overwhelming the physical processor in the IBM Q lab, unless you specify a real backend using the *-b* parameter. **Specifying a backend other than the simulator will disable the looping component of this program and send the job only a single time to IBMQ.**
 
 The programs can trigger a shutdown of the Raspberry Pi by means of pressing and holding the SenseHat Joystick button straight down. This is very useful when running as a headless demo from battery, as it provides a means of safely shutting down the Pi and avoiding SD card damage even without a screen and input device.
 
@@ -57,8 +57,8 @@ Download the source code for the QuantumRaspberryTie program and the code should
 Be sure to download the OPENQASM files as well (_expt.qasm_ & _expt16.qasm_) for the probram and put them in the same directory as your source file.
 
 # Versions
-There is now a single version of the code, which can run in one of two modes. 
-Both require that the **sense-hat** and **qiskit** libraries be installed in order to function, and use the **threading**, **time**, and **datetime** modules.
+There is now a single version of the code, which can run in one of two quantum processor-size modes. 
+Both require that the **sense-hat**, **sense-emu** and **qiskit** libraries be installed in order to function, and use the **threading**, **time**, and **datetime** modules.
 
 ## QuantumRaspberryTie.qiskit.py
 This program tries to test its connection to the IBM Q website before making requests. It's designed to cope somewhat gracefully with what happens if you are running on batteries and your Raspberry Pi switches wireless access points as you move around, or are in a somewhat glitchy wifi environment. It also can now handle gracefully communications timeouts with the IBM Q backend, or the occasional glitch where the simulator queue status for a job gets stuck in "RUNNING" state.
@@ -71,7 +71,18 @@ To start the program, simply call it from its directory (on my system, the defau
           will launch with the 16-qubit circuit
 +     *python QuantumRaspberryTie* _yourprogram.qasm_  
           will launch and attempt to load the circuit specified in file _yourprogram.qasm_
-
+          
+## New command line parameters (can be stacked with spaces between them) ##
++    *-e*
+          will launch and force use of the SenseHat emulator even if the SenseHat hardware is present
++    *-b:backendname*
+          will attempt to use the IBM Q Experience backend *backendname* instead of the simulator.
+          If you use a non-simulator backend, the code will execute only once instead of looping.
+          if connection fails, it will fail back to the simulator
++    *-f:qasmfilename*
+          will attempt to load the circuit specified in the file *qasmfilename*
+          if it can't load the file, will fail back to *expt.qasm*
+     
 After loading libraries, the program checks the SenseHat accelerometer to see which way the Pi is oriented. If it is flat on a table, "up" will be towards the power and display connectors on the Pi. If you wish to change the display orientation, simply hold the pi in the orientation you want until an up arrow appears on the display. The program will now use that orientation until the next cycle.
 
 The program then pings the IBM Q Experience website to make sure it has a connection; if not it will exit. 
@@ -81,6 +92,7 @@ It then loads the OPENQASM code for the experiment from a separarate text file, 
 If the ping is good, it then connects to the IBM Quantum Experience API using your token and initializes the LED display (displaying a Q). It compiles the OPENQASM code into a "quantum circuit", echoes the quantum circuit drawing to the terminal. and then sends the quantum circuit to the processor to execute. While it waits for the response, it cycles the light display through a rainbow shift to indicate that the system is "thinking". Once the result is returned by the processor, the measured values of the qubits are displayed as either red (measured 0) or blue (measured 1).
 
 The system will pause for a few seconds, then run the code again (flashing the Q as it starts) to display a new result. You may trigger a new run sooner by pressing the SenseHat joystick in any direction. If you want to change which way on the display is "up" simply hold the Pi in the correct orientation until the Q displays as the cycle starts (the position is measured before sending the job).
+*If you specify one of the non-simulator backends using the **-b** option, the program will not run in a loop, but will instead exit after sending the quantum circuit to IBM Q and displaying the result once. This is to avoid burning up your "credits" in the IBM Q Experience.*
 
 In each cycle, the status of the backend is checked and printed to the console, as is the quantum circuit diagram, then the probability value and measured bit pattern of the most-frequent result wich is used for the display
 
