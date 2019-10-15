@@ -529,9 +529,12 @@ while Looping:
                                        running_start = process_time()
                                     else :
                                         if process_time()-running_start > stalled_time :
-                                            running_timeout = True                               
+                                            running_timeout = True
+                               if qstatus == JobStatus.ERROR:
+                                    running_timeout = True
                                if qstatus == JobStatus.DONE :
                                     qdone = True
+                              
                        if qdone :
                            # only get here once we get DONE status
                            result=qjob.result()     # get the result
@@ -559,6 +562,10 @@ while Looping:
             hat.set_pixels(pixels)
          if event.action == 'held' and event.direction =='middle':
             shutdown=True 
-         
+         if event.action == 'held' and event.direction !='middle':
+             Looping = False
+             break
       if (process_time()-myTimer>interval):       # 10 seconds elapsed -- go now
             goAgain=True
+
+print("Program Execution ended normally")

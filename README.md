@@ -20,6 +20,8 @@ The 16 qubit display corresponds to a 16-qubit processor
 Actual calculations are run using the quantum simulator backend for the quantum processor, to avoid overwhelming the physical processor in the IBM Q lab, unless you specify a real backend using the *-b* parameter. **Specifying a backend other than the simulator will disable the looping component of this program and send the job only a single time to IBMQ.**
 
 The programs can trigger a shutdown of the Raspberry Pi by means of pressing and holding the SenseHat Joystick button straight down. This is very useful when running as a headless demo from battery, as it provides a means of safely shutting down the Pi and avoiding SD card damage even without a screen and input device.
+You may also exit execution *without* a shutdown by pressing and holding the joystick button to any side. 
+Both joystick events will be detected on the emulator as well as on the SenseHat hardware.
 
 # Installation
 
@@ -96,7 +98,9 @@ The system will pause for a few seconds, then run the code again (flashing the Q
 
 In each cycle, the status of the backend is checked and printed to the console, as is the quantum circuit diagram, then the probability value and measured bit pattern of the most-frequent result wich is used for the display
 
-To stop the program and shut down the Pi, press and hold the joystick button on the SenseHat. The color display will stop cycling, it will briefly display **OFF** on the LED array, and then the Pi will shut down. When the green light on the Pi stops flashing, it is safe to disconnect power.
+To stop the loop and exit execution, press and hold the joystick button on the SenseHat to any of the 4 sides.
+
+To stop the program and shut down the Pi, press and hold  (center press) the joystick button on the SenseHat. The color display will stop cycling, it will briefly display **OFF** on the LED array, and then the Pi will shut down. When the green light on the Pi stops flashing, it is safe to disconnect power.
 
 **NOTE** If you are running using the SenseHat emulator and click and hold the emulator GUI joystick button, it *will* shut down your rPi. Don't leave unsaved files open if you are going to test this.
 
