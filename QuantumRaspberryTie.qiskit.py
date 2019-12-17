@@ -50,6 +50,7 @@ import warnings
 
 #Check any command arguments to see if we're forcing the emulator or changing the backend
 UseEmulator = False
+QWhileThinking = True
 print(sys.argv)
 print ("Number of arguments: ",len(sys.argv))
 # look for a filename option or other starting parameters
@@ -59,6 +60,7 @@ if (len(sys.argv)>1):
         parameter = sys.argv[p]
         if type(parameter) is str:
             print("Parameter ",p," ",parameter)
+            if '-noq' in parameter: QWhileThinking = False
             if '-e' in parameter: UseEmulator = True
             elif ':' in parameter:
                 token = parameter.split(':')[0]
@@ -155,6 +157,17 @@ Qlogo = [
    O, O, O, X, X, O, O, O,
    ]
 
+QLarray = [
+              [3],[4],
+         [10],       [13],
+         [18],       [21],
+         [26],       [29],
+         [34],       [37],
+             [43],[44],
+                  [52],
+             [59],[60]
+    ]
+
 Arrow = [
    O, O, O, X, O, O, O, O,
    O, O, X, X, X, O, O, O,
@@ -217,6 +230,10 @@ def showqubits(pattern='0000000000000000'):
 
 def blinky(time=20,experimentID=''):
    global pixels,hues,experiment, Qlogo, showlogo
+   if QWhileThinking:
+       mask = QLarray
+   else:
+       mask = display
    #resetrainbow()
    count=0
    GoNow=False
@@ -228,10 +245,17 @@ def blinky(time=20,experimentID=''):
       # hsv_to_rgb returns 0..1 floats; convert to ints in the range 0..255
       pixels = [(scale(r), scale(g), scale(b)) for r, g, b in pixels]
       for p in range(64):
-         if p in sum(display,[]):
-            pass
-         else:
-            pixels[p]=[0,0,0]
+         #if QWhileThinking:
+         #    if p in sum(Qlogo,[]):
+          #       pass
+          #   else:
+          #       pixels[p]=[0,0,0]
+        # else:
+             if p in sum(mask,[]):
+             #if p in sum(display,[]):
+                pass
+             else:
+                pixels[p]=[0,0,0]
       if (result is not None):
          if (result.status=='COMPLETED'):
             GoNow=True
