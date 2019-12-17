@@ -1,4 +1,5 @@
 # quantum-raspberry-tie
+<img src='rainbow_q.jpg' width='150' alt='display while waiting for results' style='float:right;'><br/> 
 Your Raspberry Pi running code on the IBM Q quantum processors via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat (or SenseHat emulator)!
 ## Third Release: will fail over to SenseHat emulator if no SenseHat hardware is detected. You may opt to send your quantum circuit to an actual quantum processor backend at IBM Q instead of the simulator
 
@@ -84,6 +85,9 @@ To start the program, simply call it from its directory (on my system, the defau
 +    *-f:qasmfilename*
           will attempt to load the circuit specified in the file *qasmfilename*
           if it can't load the file, will fail back to *expt.qasm*
++    *-noq*          
+          will display the rainbow wash in the qubit pattern. Without this parameter, 
+          the display will show a Q and run the rainbow wash across that while "thinking"
      
 After loading libraries, the program checks the SenseHat accelerometer to see which way the Pi is oriented. If it is flat on a table, "up" will be towards the power and display connectors on the Pi. If you wish to change the display orientation, simply hold the pi in the orientation you want until an up arrow appears on the display. The program will now use that orientation until the next cycle.
 
@@ -106,7 +110,7 @@ To stop the program and shut down the Pi, press and hold  (center press) the joy
 
 Both versions run the display by spawning a second thread. As long as the variable *thinking* is True, the rainbow cycle is run. If it is False, the value of the string variable *maxpattern* is translated into the red and blue qubit display.
 
-The "blinky" and "showqubits" functions in the code are generalized to work with a global *display* variable. Setting that to equal the list defining the 5-qubit processor (ibm_qx5) will result in the bowtie display, setting it equal to the 16 (ibm_qx16) will result in the 16 bit display.
+The "blinky" and "showqubits" functions in the code are generalized to work with a global *display* variable. Setting that to equal the list defining the 5-qubit processor (ibm_qx5) will result in the bowtie display, setting it equal to the 16 (ibm_qx16) will result in the 16 bit display. New in version 4: the default is for blinky to use the Q logo for the rainbow "thinking" display; specifying -noq as a start parameter will use the qubit pattern instead.
 
 ## The OPENQASM code being run
 The program being run on the 5-qubit processor is very simple. 5 qubits are initialized to the ground state, a Hadamard gate is applied to each one to place it into a state of full superposition, then each is measured. The net effect is a 5-bit random number generator. Only 10 shots are run, so one pattern should always randomly end up higher in the results. The code is found in the variable *qasm* in both versions. It looks like this:
