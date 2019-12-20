@@ -51,6 +51,7 @@ import warnings
 #Check any command arguments to see if we're forcing the emulator or changing the backend
 UseEmulator = False
 QWhileThinking = True
+UseTee = False
 print(sys.argv)
 print ("Number of arguments: ",len(sys.argv))
 # look for a filename option or other starting parameters
@@ -60,16 +61,17 @@ if (len(sys.argv)>1):
         parameter = sys.argv[p]
         if type(parameter) is str:
             print("Parameter ",p," ",parameter)
-            if '-noq' in parameter: QWhileThinking = False
-            if '-e' in parameter: UseEmulator = True
-            elif ':' in parameter:
-                token = parameter.split(':')[0]
-                value = parameter.split(':')[1]
-                if '-b' in token: backendparm = value
-                elif '-f' in token: qasmfileinput = value
+            if '-noq' in parameter: QWhileThinking = False # do the rainbow wash across the qubit pattern while "thinking"
+            if '-tee' in parameter: UseTee = True          # use the new tee-shaped 5 qubit layout for the display
+            if '-e' in parameter: UseEmulator = True       # force use of the SenseHat emulator even if hardware is installed
+            elif ':' in parameter:                         # parse two-component parameters
+                token = parameter.split(':')[0]            # before the colon is the key
+                value = parameter.split(':')[1]            # after the colon is the value
+                if '-b' in token: backendparm = value      # if the key is -b, specify the backend
+                elif '-f' in token: qasmfileinput = value  # if the key is -f, specify the qasm file
             else:
                 #print (type(sys.argv[1]))
-                qasmfileinput=parameter
+                qasmfileinput=parameter                    # if not any of the above parameters, presume it's the qasm file
               
 
 # Now we are going to try to instantiate the SenseHat, unless we have asked for the emulator.
@@ -126,6 +128,7 @@ showlogo=False
 
 # pixel coordinates to draw the bowtie qubits or the 16 qubit array
 ibm_qx5 = [[40,41,48,49],[8,9,16,17],[28,29,36,37],[6,7,14,15],[54,55,62,63]]
+ibm_qx5t = [[0,1,8,9],[3,4,11,12],[6,7,14,15],[27,28,35,36],[51,52,59,60]] 
 ibm_qx16 = [[63],[54],[61],[52],[59],[50],[57],[48],
             [7],[14],[5],[12],[3],[10],[1],[8]]
             #[[0],[9],[2],[11],[4],[13],[6],[15],
@@ -497,7 +500,8 @@ if (qcirc.width()/2 > 5):
     maxpattern='0000000000000000'
     print ("circuit width: ",qcirc.width()/2," using 16 qubit display")
 else:
-    display = ibm_qx5
+    if (UseTee): display = ibm_qx5t
+    else: display = ibm_qx5
     maxpattern='00000'
     print ("circuit width: ",qcirc.width()/2," using 5 qubit display")
 
