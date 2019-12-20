@@ -88,6 +88,9 @@ To start the program, simply call it from its directory (on my system, the defau
 +    *-noq*          
           will display the rainbow wash in the qubit pattern. Without this parameter, 
           the display will show a Q and run the rainbow wash across that while "thinking"
++    *-tee*
+          will display 5-or-less qubit circuit results in  "tee" arrangement like the newer
+          processors instead of in the "bowtie" arrangement
      
 After loading libraries, the program checks the SenseHat accelerometer to see which way the Pi is oriented. If it is flat on a table, "up" will be towards the power and display connectors on the Pi. If you wish to change the display orientation, simply hold the pi in the orientation you want until an up arrow appears on the display. The program will now use that orientation until the next cycle.
 
