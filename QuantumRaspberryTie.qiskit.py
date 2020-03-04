@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 #     QuantumRaspberryTie.qiskit
-#       by KPRoche (Kevin P. Roche) (c) 2017,2018,2019
+#       by KPRoche (Kevin P. Roche) (c) 2017,2018,2019,2020
 #
 #     Connect to the IBM Quantum Experience site via the QISKIT IBMQ functions
 #             run OPENQASM code on the simulator there
@@ -550,6 +550,7 @@ while Looping:
                                qstatus = qjob.status()
                            except:
                                print("Problem getting status, trying again...")
+                               print (qstatus)
                            else:
                                print(runcounter,": ",qstatus)
                                if qstatus == JobStatus.RUNNING :
