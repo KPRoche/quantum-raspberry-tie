@@ -395,7 +395,7 @@ if (not os.path.isfile(qasmfilename)):
 #           based on pi-ping by Wesley Archer (raspberrycoulis) (c) 2017
 #           https://github.com/raspberrycoulis/Pi-Ping
 #----------------------------------------------------------------------------
-def ping(website='https://quantumexperience.ng.bluemix.net',repeats=1,wait=0.5,verbose=False):
+def ping(website='https://quantum-computing.ibm.com/',repeats=1,wait=0.5,verbose=False):
   msg = 'ping response'
   for n in range(repeats):
     response = requests.get(website)
