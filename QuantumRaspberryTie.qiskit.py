@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 #     QuantumRaspberryTie.qiskit
-#       by KPRoche (Kevin P. Roche) (c) 2017,2018,2019,2020
+#       by KPRoche (Kevin P. Roche) (c) 2017,2018,2019,2020,2021
 #
 #     Connect to the IBM Quantum Experience site via the QISKIT IBMQ functions
 #             run OPENQASM code on the simulator there
@@ -20,6 +20,7 @@
 #                        If that fails, then loads and launches SenseHat emulator for display instead
 #     October 2019 -- added extra command line parameters. Can force use of Sensehat emulator, or specify backend
 #                        (specifying use of a non-simulator backend will disable loop)
+#     Feb 2020 -- Added fix to IBM Quantum Experience URL (Thanks Jan Lahman)
 #----------------------------------------------------------------------
 
 
