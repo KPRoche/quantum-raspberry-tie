@@ -432,12 +432,16 @@ def ping(website='https://quantum-computing.ibm.com/',repeats=1,wait=0.5,verbose
 #-------------------------------------------------------------------------------
 def startIBMQ():
     global Q, backend
-    # Written to work with versions of IBMQ-Provider both before and after 0.3 
-    IBMQP_Vers=float(IBMQVersion['qiskit-ibmq-provider'][:3])
+    # Written to work with versions of IBMQ-Provider both before and after 0.3
+    sQPV = IBMQVersion['qiskit-ibmq-provider']
+    pd = '.'
+    dot1 = [pos for pos, char in enumerate(sQPV) if char==pd][0]
+    dot2 = [pos for pos, char in enumerate(sQPV) if char==pd][1]
+    IBMQP_Vers=float(sQPV[dot1+1:dot2])
     print('IBMQ Provider v',IBMQP_Vers)
     print ('Pinging IBM Quantum Experience before start')
     p=ping('https://api.quantum-computing.ibm.com',1,0.5,True)
-    
+    #p=ping('https://quantum-computing.ibm.com/',1,0.5,True)
     try:
         print("requested backend: ",backendparm)
     except:
@@ -446,7 +450,7 @@ def startIBMQ():
     # specify the simulator as the backend
     backend='ibmq_qasm_simulator'   
     if p==200:
-        if (IBMQP_Vers > 0.2):   # The new authentication technique with provider as the object
+        if (IBMQP_Vers > 2):   # The new authentication technique with provider as the object
             provider0=IBMQ.load_account()
             try:
                 Q=provider0.get_backend(backendparm)
