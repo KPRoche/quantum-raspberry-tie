@@ -499,7 +499,13 @@ else:                            # otherwise print it to the console for referen
     print("OPENQASM code to send:\n",qasm)
     
 qcirc=QuantumCircuit.from_qasm_str(qasm)   
-print (qcirc)
+try:
+    print (qcirc)
+except UnicodeEncodeError:
+    print ('Unable to render quantum circuit drawing; incompatible Unicode environment')
+except:
+    print ('Unable to render quantum circuit drawing for some reason')
+    
 if (qcirc.width()/2 > 5):
     display = ibm_qx16
     maxpattern='0000000000000000'
@@ -535,7 +541,14 @@ while Looping:
                if Q.status().status_msg == 'active':
                    
                    print('     executing quantum circuit... on ',Q.name())
-                   print(qcirc)
+                   try:
+                        print (qcirc)
+                   except UnicodeEncodeError:
+                        print ('Unable to render quantum circuit drawing; incompatible Unicode environment')
+                   except:
+                        print ('Unable to render quantum circuit drawing for some reason')
+                        
+                        
                    try:
                        qjob=execute(qcirc, Q, shots=500, memory=False)
                        Looping = 'simul' in Q.name()
