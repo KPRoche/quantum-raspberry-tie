@@ -1,7 +1,9 @@
 # quantum-raspberry-tie
 <img src='rainbow_q.jpg' width='150' alt='display while waiting for results' style='float:right;'><br/> 
-Your Raspberry Pi running code on the IBM Q quantum processors via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat (or SenseHat emulator)!
-## Third Release: will fail over to SenseHat emulator if no SenseHat hardware is detected. You may opt to send your quantum circuit to an actual quantum processor backend at IBM Q instead of the simulator
+Your Raspberry Pi running code on the IBM Quantum quantum processors via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat (or SenseHat emulator)!
+## Fourth Release: -local option: can run on local Aer qasm_simulator backend instead of using IBM Quantum backends via network! Parses newer version numbers of qiskit properly
+
+## Third Release: will fail over to SenseHat emulator if no SenseHat hardware is detected. You may opt to send your quantum circuit to an actual quantum processor backend at IBM Quantum instead of the simulator
 
 This code is specifically designed to run on a Raspberry Pi 3 with the SenseHat installed. The 8x8 array on the SenseHat is used to display the results.
 Alternatively, if no SenseHat is detected, it will launch and use the display on a SenseHat emulator session instead.
@@ -18,7 +20,9 @@ The 16 qubit display corresponds to a 16-qubit processor
 <br /><img src='ibm_16_qubit_processor-100722935-large.3x2.jpg' width='200' alt='IBM 16 qubit processor' style='float:left;'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <img src='16-bitRpi-result.JPG' width='200' alt='16 qubit Output displayed on the SenseHat' style='float:right;'><br/>
 
-Actual calculations are run using the quantum simulator backend for the quantum processor, to avoid overwhelming the physical processor in the IBM Q lab, unless you specify a real backend using the *-b* parameter. **Specifying a backend other than the simulator will disable the looping component of this program and send the job only a single time to IBMQ.**
+Actual calculations are run using the quantum simulator backend for the quantum processor, to avoid overwhelming the physical processor in the IBM Quantum computing center, unless you specify a real backend using the *-b* parameter. **Specifying a backend other than the simulator will disable the looping component of this program and send the job only a single time to IBM Quantum.**
+
+You may specify using a **local** qiskit-aer simulator by adding the **-local** parameter when starting. This disables all the network apis and can run with no internet connection to IBM Quantum.
 
 The programs can trigger a shutdown of the Raspberry Pi by means of pressing and holding the SenseHat Joystick button straight down. This is very useful when running as a headless demo from battery, as it provides a means of safely shutting down the Pi and avoiding SD card damage even without a screen and input device.
 You may also exit execution *without* a shutdown by pressing and holding the joystick button to any side. 
@@ -64,7 +68,7 @@ There is now a single version of the code, which can run in one of two quantum p
 Both require that the **sense-hat**, **sense-emu** and **qiskit** libraries be installed in order to function, and use the **threading**, **time**, and **datetime** modules.
 
 ## QuantumRaspberryTie.qiskit.py
-This program tries to test its connection to the IBM Q website before making requests. It's designed to cope somewhat gracefully with what happens if you are running on batteries and your Raspberry Pi switches wireless access points as you move around, or are in a somewhat glitchy wifi environment. It also can now handle gracefully communications timeouts with the IBM Q backend, or the occasional glitch where the simulator queue status for a job gets stuck in "RUNNING" state.
+Unless running with the **-local** parameter, this program tries to test its connection to the IBM Quantum website before making requests. It's designed to cope somewhat gracefully with what happens if you are running on batteries and your Raspberry Pi switches wireless access points as you move around, or are in a somewhat glitchy wifi environment. It also can now handle gracefully communications timeouts with the IBM Q backend, or the occasional glitch where the simulator queue status for a job gets stuck in "RUNNING" state.
 
 To start the program, simply call it from its directory (on my system, the default version of python is python 3.6.6; add the version number if that is not true on your system):
 +     *python QuantumRaspberryTie*  
@@ -85,6 +89,9 @@ To start the program, simply call it from its directory (on my system, the defau
 +    *-f:qasmfilename*
           will attempt to load the circuit specified in the file *qasmfilename*
           if it can't load the file, will fail back to *expt.qasm*
++    *-local*
+          will use the qiskit aer qasm_simulator backend running *on the Raspberry Pi* instead of one at IBM Quantum.
+          this can run even if there is no connectivity to the Internet
 +    *-noq*          
           will display the rainbow wash in the qubit pattern. Without this parameter, 
           the display will show a Q and run the rainbow wash across that while "thinking"
