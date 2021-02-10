@@ -53,6 +53,7 @@ import warnings
 UseEmulator = False
 QWhileThinking = True
 UseTee = False
+UseLocal = False
 print(sys.argv)
 print ("Number of arguments: ",len(sys.argv))
 # look for a filename option or other starting parameters
@@ -62,6 +63,7 @@ if (len(sys.argv)>1):
         parameter = sys.argv[p]
         if type(parameter) is str:
             print("Parameter ",p," ",parameter)
+            if '-local' in parameter: UseLocal = True      # use the aer local simulator instead of the web API
             if '-noq' in parameter: QWhileThinking = False # do the rainbow wash across the qubit pattern while "thinking"
             if '-tee' in parameter: UseTee = True          # use the new tee-shaped 5 qubit layout for the display
             if '-e' in parameter: UseEmulator = True       # force use of the SenseHat emulator even if hardware is installed
@@ -73,7 +75,13 @@ if (len(sys.argv)>1):
             else:
                 #print (type(sys.argv[1]))
                 qasmfileinput=parameter                    # if not any of the above parameters, presume it's the qasm file
-              
+
+# If UseLocal was specified, we need to load the aer backends
+if UseLocal:
+    print (".... importing Aer to use local simulator")
+    from qiskit import Aer
+
+
 
 # Now we are going to try to instantiate the SenseHat, unless we have asked for the emulator.
 # if it fails, we'll try loading the emulator 
@@ -439,35 +447,39 @@ def startIBMQ():
     dot2 = [pos for pos, char in enumerate(sQPV) if char==pd][1]
     IBMQP_Vers=float(sQPV[dot1+1:dot2])
     print('IBMQ Provider v',IBMQP_Vers)
-    print ('Pinging IBM Quantum Experience before start')
-    p=ping('https://api.quantum-computing.ibm.com',1,0.5,True)
-    #p=ping('https://quantum-computing.ibm.com/',1,0.5,True)
-    try:
-        print("requested backend: ",backendparm)
-    except:
-        sleep(0)
+    if not UseLocal:
+        print ('Pinging IBM Quantum Experience before start')
+        p=ping('https://api.quantum-computing.ibm.com',1,0.5,True)
+        #p=ping('https://quantum-computing.ibm.com/',1,0.5,True)
+        try:
+            print("requested backend: ",backendparm)
+        except:
+            sleep(0)
         
-    # specify the simulator as the backend
-    backend='ibmq_qasm_simulator'   
-    if p==200:
-        if (IBMQP_Vers > 2):   # The new authentication technique with provider as the object
-            provider0=IBMQ.load_account()
-            try:
-                Q=provider0.get_backend(backendparm)
-            except:
-                Q=provider0.get_backend(backend)
-            else:
-                interval = 300
-        else:                    # The older IBMQ authentication technique
-            IBMQ.load_accounts()
-            try:
-                Q=IBMQ.get_backend(backendparm)
-            except:
-                Q=IBMQ.get_backend(backend)
-            else:
-                interval = 300
-    else:
-        exit()
+        # specify the simulator as the backend
+        backend='ibmq_qasm_simulator'   
+        if p==200:
+            if (IBMQP_Vers > 2):   # The new authentication technique with provider as the object
+                provider0=IBMQ.load_account()
+                try:
+                    Q=provider0.get_backend(backendparm)
+                except:
+                    Q=provider0.get_backend(backend)
+                else:
+                    interval = 300
+            else:                    # The older IBMQ authentication technique
+                IBMQ.load_accounts()
+                try:
+                    Q=IBMQ.get_backend(backendparm)
+                except:
+                    Q=IBMQ.get_backend(backend)
+                else:
+                    interval = 300
+        else:
+            exit()
+    else: # THIS IS THE CASE FOR USING LOCAL SIMULATOR
+        backend='local aer qasm_simulator'  
+        Q = Aer.get_backend('qasm_simulator')
 #-------------------------------------------------------------------------------
 
 
@@ -524,7 +536,10 @@ while Looping:
    runcounter += 1
    
    try:
-       p=ping()
+       if not UseLocal:
+           p=ping()
+       else:
+           p=200
    except:
        print("connection problem with IBMQ")
    else:
@@ -538,7 +553,7 @@ while Looping:
                print('Problem getting backend status... waiting to try again')
            else:
                print('Backend Status: ',backend_status.status_msg)
-               if Q.status().status_msg == 'active':
+               if Q.status().status_msg == 'active' or UseLocal:
                    
                    print('     executing quantum circuit... on ',Q.name())
                    try:
@@ -589,6 +604,8 @@ while Looping:
                            maxpattern=max(counts,key=counts.get)
                            maxvalue=counts[maxpattern]
                            print("Maximum value:",maxvalue, "Maximum pattern:",maxpattern)
+                           if UseLocal:
+                               sleep(3)
                            thinking = False  # this cues the display thread to show the qubits in maxpattern
                        if running_timeout :
                             print(backend,' Queue appears to have stalled. Restarting Job.')    
