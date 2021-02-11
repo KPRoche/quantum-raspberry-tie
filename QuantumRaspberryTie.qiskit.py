@@ -54,6 +54,8 @@ UseEmulator = False
 QWhileThinking = True
 UseTee = False
 UseLocal = False
+fake_name = "FakeParis"
+AddNoise = False
 print(sys.argv)
 print ("Number of arguments: ",len(sys.argv))
 # look for a filename option or other starting parameters
@@ -64,6 +66,9 @@ if (len(sys.argv)>1):
         if type(parameter) is str:
             print("Parameter ",p," ",parameter)
             if '-local' in parameter: UseLocal = True      # use the aer local simulator instead of the web API
+            if '-nois' in parameter:
+                UseLocal = True
+                AddNoise = True
             if '-noq' in parameter: QWhileThinking = False # do the rainbow wash across the qubit pattern while "thinking"
             if '-tee' in parameter: UseTee = True          # use the new tee-shaped 5 qubit layout for the display
             if '-e' in parameter: UseEmulator = True       # force use of the SenseHat emulator even if hardware is installed
@@ -72,6 +77,7 @@ if (len(sys.argv)>1):
                 value = parameter.split(':')[1]            # after the colon is the value
                 if '-b' in token: backendparm = value      # if the key is -b, specify the backend
                 elif '-f' in token: qasmfileinput = value  # if the key is -f, specify the qasm file
+                elif '-nois' in token: fake_name = value
             else:
                 #print (type(sys.argv[1]))
                 qasmfileinput=parameter                    # if not any of the above parameters, presume it's the qasm file
@@ -80,7 +86,14 @@ if (len(sys.argv)>1):
 if UseLocal:
     print (".... importing Aer to use local simulator")
     from qiskit import Aer
-
+if AddNoise:
+    print (".... importing noise models")
+    if fake_name == "":
+        fake_name = "FakeParis"
+    import importlib
+    from qiskit.providers.aer import QasmSimulator
+    fake_qcs = importlib.import_module('qiskit.test.mock')
+    fake_qc = getattr(fake_qcs, fake_name)
 
 
 # Now we are going to try to instantiate the SenseHat, unless we have asked for the emulator.
@@ -478,8 +491,13 @@ def startIBMQ():
         else:
             exit()
     else: # THIS IS THE CASE FOR USING LOCAL SIMULATOR
-        backend='local aer qasm_simulator'  
-        Q = Aer.get_backend('qasm_simulator')
+        backend='local aer qasm_simulator'
+        print ("Building ",backend, "with requested attributes...")
+        if not AddNoise:
+            Q = Aer.get_backend('qasm_simulator')
+        else:
+            fake_backend = fake_qc()
+            Q = QasmSimulator.from_backend(fake_backend)
 #-------------------------------------------------------------------------------
 
 
