@@ -1,7 +1,7 @@
 # quantum-raspberry-tie
 <img src='rainbow_q.jpg' width='150' alt='display while waiting for results' style='float:right;'><br/> 
 Your Raspberry Pi running code on the IBM Quantum quantum processors via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat (or SenseHat emulator)!
-## Fourth Release: -local option: can run on local Aer qasm_simulator backend instead of using IBM Quantum backends via network! Parses newer version numbers of qiskit properly
+## Fourth Release: -local option: can run on local Aer qasm_simulator backend instead of using IBM Quantum backends via network! -noise option runs local simulator with a noise model based on a real processor. Parses newer version numbers of qiskit properly
 
 ## Third Release: will fail over to SenseHat emulator if no SenseHat hardware is detected. You may opt to send your quantum circuit to an actual quantum processor backend at IBM Quantum instead of the simulator
 
@@ -23,6 +23,8 @@ The 16 qubit display corresponds to a 16-qubit processor
 Actual calculations are run using the quantum simulator backend for the quantum processor, to avoid overwhelming the physical processor in the IBM Quantum computing center, unless you specify a real backend using the *-b* parameter. **Specifying a backend other than the simulator will disable the looping component of this program and send the job only a single time to IBM Quantum.**
 
 You may specify using a **local** qiskit-aer simulator by adding the **-local** parameter when starting. This disables all the network apis and can run with no internet connection to IBM Quantum.
+You may specify a **noisy** local simulator by using the **-noise** parameter when starting. This has the same effect as -local but builds a simulator based on a model of one of the physical IBM Quantum processors. The default noise model used is *FakeParis*.
+You may specify the processor noise model to use by calling the parameter **-noise:Fake*XXXXXX*** where "XXXXXX" represents the system. The list of available models can be found at https://github.com/Qiskit/qiskit-terra/blob/master/qiskit/test/mock/fake_provider.py
 
 The programs can trigger a shutdown of the Raspberry Pi by means of pressing and holding the SenseHat Joystick button straight down. This is very useful when running as a headless demo from battery, as it provides a means of safely shutting down the Pi and avoiding SD card damage even without a screen and input device.
 You may also exit execution *without* a shutdown by pressing and holding the joystick button to any side. 
