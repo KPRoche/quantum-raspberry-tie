@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------
 #     QuantumRaspberryTie.qiskit
-#       by KPRoche (Kevin P. Roche) (c) 2017,2018,2019,2020,2021
+#       by KPRoche (Kevin P. Roche) (c) 2017,2018,2019,2020,2021,2022
 #
 #     Connect to the IBM Quantum Experience site via the QISKIT IBMQ functions
 #             run OPENQASM code on the simulator there
@@ -21,6 +21,10 @@
 #     October 2019 -- added extra command line parameters. Can force use of Sensehat emulator, or specify backend
 #                        (specifying use of a non-simulator backend will disable loop)
 #     Feb 2020 -- Added fix to IBM Quantum Experience URL (Thanks Jan Lahman)
+#
+#     Nov 2022 -- Cleaned up -local option to run a local qasm simulator if supported
+#
+#
 #----------------------------------------------------------------------
 
 
@@ -66,7 +70,7 @@ if (len(sys.argv)>1):
         if type(parameter) is str:
             print("Parameter ",p," ",parameter)
             if '-local' in parameter: UseLocal = True      # use the aer local simulator instead of the web API
-            if '-nois' in parameter:
+            if '-nois' in parameter:                       # add noise model to local simulator
                 UseLocal = True
                 AddNoise = True
             if '-noq' in parameter: QWhileThinking = False # do the rainbow wash across the qubit pattern while "thinking"
@@ -593,9 +597,10 @@ while Looping:
                        # Don't bother with this part if the execute throws an exception     
                        running_start = 0
                        running_timeout = False
+                       running_cancelled = False
                        showlogo =  False
                        qdone = False
-                       while not (qdone or running_timeout):
+                       while not (qdone or running_timeout or running_cancelled):
                            #result=qjob.result()     # get the result
                            try:
                                qstatus = qjob.status()
@@ -612,6 +617,8 @@ while Looping:
                                             running_timeout = True
                                if qstatus == JobStatus.ERROR:
                                     running_timeout = True
+                               if qstatus == JobStatus.CANCELLED :
+                                    running_cancelled = True
                                if qstatus == JobStatus.DONE :
                                     qdone = True
                               
@@ -626,7 +633,9 @@ while Looping:
                                sleep(3)
                            thinking = False  # this cues the display thread to show the qubits in maxpattern
                        if running_timeout :
-                            print(backend,' Queue appears to have stalled. Restarting Job.')    
+                            print(backend,' Queue appears to have stalled. Restarting Job.')
+                       if running_cancelled :
+                            print(backend,' Job cancelled at backend. Restarting.')    
                else:
                     print(backend,'busy; waiting to try again')
        else:
