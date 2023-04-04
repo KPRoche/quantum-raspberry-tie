@@ -24,6 +24,8 @@
 #
 #     Nov 2022 -- Cleaned up -local option to run a local qasm simulator if supported
 #
+#     April 2023 -- added dual display option. If sensehat is available, will spin up a second emulator to show
+#                    on the desktop
 #
 #----------------------------------------------------------------------
 
@@ -55,6 +57,7 @@ import warnings
 
 #Check any command arguments to see if we're forcing the emulator or changing the backend
 UseEmulator = False
+DualDisplay = False
 QWhileThinking = True
 UseTee = False
 UseLocal = False
@@ -76,6 +79,7 @@ if (len(sys.argv)>1):
             if '-noq' in parameter: QWhileThinking = False # do the rainbow wash across the qubit pattern while "thinking"
             if '-tee' in parameter: UseTee = True          # use the new tee-shaped 5 qubit layout for the display
             if '-e' in parameter: UseEmulator = True       # force use of the SenseHat emulator even if hardware is installed
+            if '-dual' in parameter: DualDisplay = True
             elif ':' in parameter:                         # parse two-component parameters
                 token = parameter.split(':')[0]            # before the colon is the key
                 value = parameter.split(':')[1]            # after the colon is the value
@@ -124,6 +128,18 @@ if UseEmulator:
             sleep(1)
         else:
             SenseHatEMU = True
+else:
+    if DualDisplay:
+        from sense_emu import SenseHat         # class for controlling the SenseHat
+        hat2 = SenseHat() # instantiating hat emulator so we can use it in functions
+        while not SenseHatEMU:
+            try:
+                hat2.set_imu_config(True,True,True) #initialize the accelerometer simulation
+            except:
+                sleep(1)
+            else:
+                SenseHatEMU = True
+    
 
 # some variables and settings we are going to need as we start up
 
@@ -232,7 +248,9 @@ def resetrainbow(show=False):
    global pixels,hues
    pixels = [hsv_to_rgb(h, 1.0, 1.0) for h in hues]
    pixels = [(scale(r), scale(g), scale(b)) for r, g, b in pixels]
-   if (show): hat.set_pixels(pixels)
+   if (show):
+       hat.set_pixels(pixels)
+       if DualDisplay: hat2.set_pixels(pixels)
 
 def showqubits(pattern='0000000000000000'):
    global hat
@@ -247,8 +265,8 @@ def showqubits(pattern='0000000000000000'):
             pixels[p]=[255,0,0]
 
    hat.set_pixels(pixels)         # turn them all on
-
-
+   if DualDisplay: hat2.set_pixels(pixels)
+   
 #--------------------------------------------------
 #    blinky lets us use the rainbow rotation code to fill the bowtie pattern
 #       it can be interrupted by tapping the joystick or if
@@ -291,8 +309,10 @@ def blinky(time=20,experimentID=''):
     # Update the display
       if not showlogo:
           hat.set_pixels(pixels)
+          if DualDisplay: hat2.set_pixels(pixels)
       else:
           hat.set_pixels(Qlogo)
+          if DualDisplay: hat2.set_pixels(Qlogo)
       sleep(0.002)
       count+=1
       for event in hat.stick.get_events():
@@ -324,6 +344,7 @@ class glow():
             hat.set_pixels(off)
             sleep(1)
             hat.clear()
+            if DualDisplay: hat2.clear()
             path = 'sudo shutdown -P now '
             os.system (path)
          else:
@@ -349,7 +370,7 @@ def orient():
 
     if y == -1:
         angle = 180
-    elif y == 1 or SenseHatEMU:
+    elif y == 1 or (SenseHatEMU and not DualDisplay):
         angle = 0
     elif x == -1:
         angle = 90
@@ -361,13 +382,14 @@ def orient():
     
 
     hat.set_rotation(angle)
+    if DualDisplay: hat2.set_rotation(0)
 
 # Now call the orient function and show an arrow
 
 orient()
 display=ibm_qx16    
 hat.set_pixels(Arrow)
-
+if DualDisplay: hat2.set_pixels(Arrow)
 
 
 
@@ -651,6 +673,7 @@ while Looping:
             goAgain=True
             blinky(.001)
             hat.set_pixels(pixels)
+            if DualDisplay: hat2.set_pixels(pixels)
          if event.action == 'held' and event.direction =='middle':
             shutdown=True 
          if event.action == 'held' and event.direction !='middle':
