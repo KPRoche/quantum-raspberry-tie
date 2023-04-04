@@ -72,6 +72,7 @@ if (len(sys.argv)>1):
         parameter = sys.argv[p]
         if type(parameter) is str:
             print("Parameter ",p," ",parameter)
+            if ('16' == parameter): qasmfileinput='16'
             if '-local' in parameter: UseLocal = True      # use the aer local simulator instead of the web API
             if '-nois' in parameter:                       # add noise model to local simulator
                 UseLocal = True
@@ -84,11 +85,15 @@ if (len(sys.argv)>1):
                 token = parameter.split(':')[0]            # before the colon is the key
                 value = parameter.split(':')[1]            # after the colon is the value
                 if '-b' in token: backendparm = value      # if the key is -b, specify the backend
-                elif '-f' in token: qasmfileinput = value  # if the key is -f, specify the qasm file
+                elif '-f' in token:
+                    qasmfileinput = value  # if the key is -f, specify the qasm file
+                    print("-f option: filename",qasmfileinput)
                 elif '-nois' in token: fake_name = value
-            else:
+                
+            #else:
                 #print (type(sys.argv[1]))
-                qasmfileinput=parameter                    # if not any of the above parameters, presume it's the qasm file
+            #    qasmfileinput=parameter                    # if not any of the above parameters, presume it's the qasm file
+print ("QASM File input",qasmfileinput)
 
 # If UseLocal was specified, we need to load the aer backends
 if UseLocal:
@@ -414,6 +419,7 @@ scriptfolder = os.path.dirname(os.path.realpath("__file__"))
 if (qasmfileinput == '16'):    qasmfilename='expt16.qasm' 
 else: qasmfilename = qasmfileinput
   #qasmfilename='expt.qasm'
+print("QASM File:",qasmfilename)
 
 #complete the path if necessary
 if ('/' not in qasmfilename):
