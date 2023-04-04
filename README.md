@@ -1,11 +1,15 @@
 # quantum-raspberry-tie
 <img src='rainbow_q.jpg' width='150' alt='display while waiting for results' style='float:right;'><br/> 
 Your Raspberry Pi running code on the IBM Quantum quantum processors via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat (or SenseHat emulator)!
+
+## Fifth Release: -dual option:  adding Dual Display option. The -dual parameter will spin up a Sensehat emulator as well as use the display on a physical Sensehat, if one is detected. If no physical hat is installed, this parameter is ignored and the emulator alone will be spun up.
+(Only the orientation of the physical display will change according to the rotation of the Raspberry Pi)
+
 ## Fourth Release: -local option: can run on local Aer qasm_simulator backend instead of using IBM Quantum backends via network! -noise option runs local simulator with a noise model based on a real processor. Parses newer version numbers of qiskit properly
 
 ## Third Release: will fail over to SenseHat emulator if no SenseHat hardware is detected. You may opt to send your quantum circuit to an actual quantum processor backend at IBM Quantum instead of the simulator
 
-This code is specifically designed to run on a Raspberry Pi 3 with the SenseHat installed. The 8x8 array on the SenseHat is used to display the results.
+This code is specifically designed to run on a Raspberry Pi 3 or later with the SenseHat installed. The 8x8 array on the SenseHat is used to display the results.
 Alternatively, if no SenseHat is detected, it will launch and use the display on a SenseHat emulator session instead.
 
 If the Pi is held on edge, the accelerometer is used to determine which edge is "up" and orients the qubit display accordingly (default is "up" equals towards the HDMI and USB power in ports).
@@ -33,8 +37,8 @@ Both joystick events will be detected on the emulator as well as on the SenseHat
 # Installation
 
 ## Prerequisites
-You will need a Raspberry Pi 3 running at least the _Jessie_ release of Raspbian, with a SenseHat* hat properly installed.  
-**Note** I found it much easier to get working reliably by doing a fresh install of Raspbian Stretch (or Buster) and going from there.  
+You will need a Raspberry Pi 3 or later running at least the _Jessie_ release of Raspbian, with a SenseHat* hat properly installed.  
+
 If your processor did not come with the SenseHat libraries pre-installed, you must install them.
      https://www.raspberrypi.org/documentation/hardware/sense-hat/
      
@@ -84,6 +88,9 @@ To start the program, simply call it from its directory (on my system, the defau
 ## New command line parameters (can be stacked with spaces between them) ##
 +    *-e*
           will launch and force use of the SenseHat emulator even if the SenseHat hardware is present
++    *-dual*
+          will launch an instance of the SenseHat emulator in addition to using the hardware (if it is present)
+          Orientation of the physical display will respond to motion of the Raspberry pi
 +    *-b:backendname*
           will attempt to use the IBM Q Experience backend *backendname* instead of the simulator.
           If you use a non-simulator backend, the code will execute only once instead of looping.
