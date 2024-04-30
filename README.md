@@ -6,6 +6,7 @@ Your Raspberry Pi running code on the IBM Quantum quantum processors via Python 
 This release requires the new v 1.0 release of Qiskit and will not run with older versions.
 It defaults to building a local simulator and offers several new options. The rest of this readme will be updated accordingly during May 2024
 
+## Previous releases
 #### Fifth Release: -dual option:  adding Dual Display option. The -dual parameter will spin up a Sensehat emulator as well as use the display on a physical Sensehat, if one is detected. If no physical hat is installed, this parameter is ignored and the emulator alone will be spun up.
 (Only the orientation of the physical display will change according to the rotation of the Raspberry Pi)
 
