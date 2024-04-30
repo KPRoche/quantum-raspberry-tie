@@ -2,12 +2,17 @@
 <img src='rainbow_q.jpg' width='150' alt='display while waiting for results' style='float:right;'><br/> 
 Your Raspberry Pi running code on the IBM Quantum quantum processors via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat (or SenseHat emulator)!
 
-## Fifth Release: -dual option:  adding Dual Display option. The -dual parameter will spin up a Sensehat emulator as well as use the display on a physical Sensehat, if one is detected. If no physical hat is installed, this parameter is ignored and the emulator alone will be spun up.
+## April 2024 (Sixth) Release For Qiskit v1.0
+This release requires the new v 1.0 release of Qiskit and will not run with older versions.
+It defaults to building a local simulator and offers several new options. The rest of this readme will be updated accordingly during May 2024
+
+## Previous releases
+#### Fifth Release: -dual option:  adding Dual Display option. The -dual parameter will spin up a Sensehat emulator as well as use the display on a physical Sensehat, if one is detected. If no physical hat is installed, this parameter is ignored and the emulator alone will be spun up.
 (Only the orientation of the physical display will change according to the rotation of the Raspberry Pi)
 
-## Fourth Release: -local option: can run on local Aer qasm_simulator backend instead of using IBM Quantum backends via network! -noise option runs local simulator with a noise model based on a real processor. Parses newer version numbers of qiskit properly
+#### Fourth Release: -local option: can run on local Aer qasm_simulator backend instead of using IBM Quantum backends via network! -noise option runs local simulator with a noise model based on a real processor. Parses newer version numbers of qiskit properly
 
-## Third Release: will fail over to SenseHat emulator if no SenseHat hardware is detected. You may opt to send your quantum circuit to an actual quantum processor backend at IBM Quantum instead of the simulator
+#### Third Release: will fail over to SenseHat emulator if no SenseHat hardware is detected. You may opt to send your quantum circuit to an actual quantum processor backend at IBM Quantum instead of the simulator
 
 This code is specifically designed to run on a Raspberry Pi 3 or later with the SenseHat installed. The 8x8 array on the SenseHat is used to display the results.
 Alternatively, if no SenseHat is detected, it will launch and use the display on a SenseHat emulator session instead.
