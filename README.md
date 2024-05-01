@@ -4,7 +4,17 @@ Your Raspberry Pi running code on the IBM Quantum quantum processors via Python 
 
 ## April 2024 (Sixth) Release For Qiskit v1.0
 This release requires the new v 1.0 release of Qiskit and will not run with older versions.
-It defaults to building a local simulator and offers several new options. The rest of this readme will be updated accordingly during May 2024
+It defaults to building a local simulator and offers several new options. 
+_The rest of this readme will be updated further, including illustrations, during May 2024_
+
+It has been tested on a Raspberry Pi 4B running CentOS Stream 9. It should run on most flavors of Linux on that hardware. Earlier versions of the hardware may run short on resources. The SenseHat emulator module may not work in all flavors of Linux.
+Super short installation notes:
+ * Follow instructions for creating a python 3 virtual environment and installing Qiskit 1.0. at https://docs.quantum.ibm.com/start/install
+ * Then follow the instructions for saving your IBM Quantum Platform account to your local machine (if you want to use real backends or build simulators based on real backends) https://docs.quantum.ibm.com/start/setup-channel#set-up-to-use-ibm-quantum-platform
+ * Make sure you have the SenseHat libraries and modules installed
+ * Try running the code!
+
+
 
 ## Previous releases
 #### Fifth Release: -dual option:  adding Dual Display option. The -dual parameter will spin up a Sensehat emulator as well as use the display on a physical Sensehat, if one is detected. If no physical hat is installed, this parameter is ignored and the emulator alone will be spun up.
