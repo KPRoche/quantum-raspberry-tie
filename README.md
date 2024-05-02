@@ -1,6 +1,6 @@
 # quantum-raspberry-tie
-<img src='rainbow_q.jpg' width='150' alt='display while waiting for results' style='float:right;'><br/> 
-Your Raspberry Pi running code on the IBM Quantum quantum processors via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat (or SenseHat emulator)!
+<img src='New Logo Screen.png' width='150' alt='display while waiting for results' style='float:right;'><br/> 
+Your Raspberry Pi running code on the IBM Quantum platform processors or simulators via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat (or SenseHat emulator)!
 
 ## April 2024 (Sixth) Release For Qiskit v1.0
 This release requires the new v 1.0 release of Qiskit and will not run with older versions.
@@ -13,52 +13,88 @@ Super short installation notes:
  * Then follow the instructions for saving your IBM Quantum Platform account to your local machine (if you want to use real backends or build simulators based on real backends) https://docs.quantum.ibm.com/start/setup-channel#set-up-to-use-ibm-quantum-platform
  * Make sure you have the SenseHat libraries and modules installed
  * Try running the code!
+   
+** [Previous Releases] (#previous-releases) **
 
 
-
-## Previous releases
-#### Fifth Release: -dual option:  adding Dual Display option. The -dual parameter will spin up a Sensehat emulator as well as use the display on a physical Sensehat, if one is detected. If no physical hat is installed, this parameter is ignored and the emulator alone will be spun up.
-(Only the orientation of the physical display will change according to the rotation of the Raspberry Pi)
-
-#### Fourth Release: -local option: can run on local Aer qasm_simulator backend instead of using IBM Quantum backends via network! -noise option runs local simulator with a noise model based on a real processor. Parses newer version numbers of qiskit properly
-
-#### Third Release: will fail over to SenseHat emulator if no SenseHat hardware is detected. You may opt to send your quantum circuit to an actual quantum processor backend at IBM Quantum instead of the simulator
-
-This code is specifically designed to run on a Raspberry Pi 3 or later with the SenseHat installed. The 8x8 array on the SenseHat is used to display the results.
-Alternatively, if no SenseHat is detected, it will launch and use the display on a SenseHat emulator session instead.
+This code is originally designed to run on a Raspberry Pi 3 or later with the SenseHat installed. _Note: Release 6 has only been tested on a Raspberry 4_. 
+The 8x8 array on the SenseHat is used to display the results.
+Alternatively, if no SenseHat is detected, it will attempt to launch and use the display on a SenseHat emulator session instead. _Note that emulator display executable does not work on all processors in all flavors of Linux_
 
 If the Pi is held on edge, the accelerometer is used to determine which edge is "up" and orients the qubit display accordingly (default is "up" equals towards the HDMI and USB power in ports).
 This version asseses the QASM program being loaded and selects either a 5-qubit or 16-qubit display accordingly. The default is to load and run a 5-qubit random number-generating program.
+### Display modes
+The output of running the quantum circuit is represented as a series of colored pixel blocks on the 8x8 matrix. A blue block indicates a measured "1" and a red block a measured "0". If the circuit uses/measures fewer qubits than the display can represent, unmeasured qubits are represented as a dimmer purple/lavendar color.
+(The assorted pixel block patterns actually correspond to various qubit arrangements on the physical processors during the history of their development; they don't map the actual connectivity of the backend/simulator used to run the quantum circut.)
 
-The 5-qubit display formats output in a manner corresponding to the IBM 5-qubit "bowtie" quantum processor.
+#### 5-qubit displays 
+**Bowtie** 
+
+The default 5-qubit display formats output in a manner corresponding to the connectivity of the early IBM 5-qubit "bowtie" quantum processor.
 <br/><img src='ibm_qubit_cpu.jpg' width='200' alt='IBM 5 qubit processor' style='float:left;'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <img src='RaspberryTieOutput.png' width='200' alt='Output displayed on the SenseHat' style='float:right;'><br/> 
 (It's called a bowtie because of the arrangement of the 5 qubits, and the particular ways they can interconnect via entanglement. Each of those rectangles touched by a squiggly line in the image on the left holds a qubit.)
 
-The 16 qubit display corresponds to a 16-qubit processor
+**Tee** 
+
+This variation of the 5-qubit display is based on the lower-noise tee connectivity of later small processors
+
+<img src='5-qubit tee.png' width='200' alt='Output displayed on the SenseHat' style='float:right;'><br/> 
+
+#### 12-qubit displays
+**Hex**
+
+Even though it looks like a diamond rather than a hexagon, this display is topologically equivalent to the 12-qubit "heavy hex" arrangement that is the building block for modern IBM quantum processors, with a qubit at each vertex of a hexagon and another at the center of each side. 
+
+<img src='12-qubit display.png' width='200' alt='Output displayed on the SenseHat' style='float:right;'><br/> 
+
+#### 16-qubit display
+The 16 qubit display arrangement corresponds to one of the early experimental 16-qubit processors
 <br /><img src='ibm_16_qubit_processor-100722935-large.3x2.jpg' width='200' alt='IBM 16 qubit processor' style='float:left;'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <img src='16-bitRpi-result.JPG' width='200' alt='16 qubit Output displayed on the SenseHat' style='float:right;'><br/>
 
-Actual calculations are run using the quantum simulator backend for the quantum processor, to avoid overwhelming the physical processor in the IBM Quantum computing center, unless you specify a real backend using the *-b* parameter. **Specifying a backend other than the simulator will disable the looping component of this program and send the job only a single time to IBM Quantum.**
+### Quantum Processor options ###
+_This behavior has changed significantly for Release 6 to reflect the changes in the IBM Quantum platform and Qiskit V1.0_
 
-You may specify using a **local** qiskit-aer simulator by adding the **-local** parameter when starting. This disables all the network apis and can run with no internet connection to IBM Quantum.
-You may specify a **noisy** local simulator by using the **-noise** parameter when starting. This has the same effect as -local but builds a simulator based on a model of one of the physical IBM Quantum processors. The default noise model used is *FakeParis*.
-You may specify the processor noise model to use by calling the parameter **-noise:Fake*XXXXXX*** where "XXXXXX" represents the system. The list of available models can be found at https://github.com/Qiskit/qiskit-terra/blob/master/qiskit/test/mock/fake_provider.py
+While the quantum circuit _may_ be sent to a real backend processor on the IBM Quantum platform, the default is to instead instantiate and use a local simulator for processing.
+#### Simulators ####
+**The default mode is now to run in loop mode on a local simulator**
 
-The programs can trigger a shutdown of the Raspberry Pi by means of pressing and holding the SenseHat Joystick button straight down. This is very useful when running as a headless demo from battery, as it provides a means of safely shutting down the Pi and avoiding SD card damage even without a screen and input device.
-You may also exit execution *without* a shutdown by pressing and holding the joystick button to any side. 
-Both joystick events will be detected on the emulator as well as on the SenseHat hardware.
+* The default is to spin up a "FakeManilaV2" simulator, which is based on a now-retired noisy 5-qubit processor. This is equivalent to the old -local mode.
+* To spin up a larger simulator, use the **-b:aer** option
+* To spin up a larger simulator with a real noise model, use **-b:aer_noise** or **-b:aer_model** option _This mode requires an active internet connection to the IBM Quantum platform to pull the noise model_
+
+#### Cloud Processors ####
+_These modes requires an active internet connection to the IBM Quantum platform_
+
+You may send the circuit to an actual IBM Quantum Platform processor backend by specifying **-b:<backend>** where <backend> is the name of a processor your account may use. 
+
+The special case **-b:least** will automatically select the non-simulator backend with the shortest queue available to your account.
+Note that "shortest queue" does not equal quick return of your job result, especialy on Open (free) accounts. It may take an hour or more for your job to actually run. **Specifying a backend other than the simulator will disable the looping component of this program and send the job only a single time to IBM Quantum.**
+
+**Cloud simulators**
+
+The IBM Quantum cloud simulators are being retired as of May 15, 2024. Until then, you may specify one of them as a backend, e.g. via **-b:ibmq_qasm_simulator**.
+Calling a cloud simulator will leave the looping mode enabled.
+
+* The programs can trigger a shutdown of the Raspberry Pi by means of pressing and holding the SenseHat Joystick button straight down. This is very useful when running as a headless demo from battery, as it provides a means of safely shutting down the Pi and avoiding SD card damage even without a screen and input device.
+* You may also exit execution *without* a shutdown by pressing and holding the joystick button to any side. 
+* Both joystick events will be detected on the emulator as well as on the SenseHat hardware.
+
+  _------------------------   Update of this file still in progress; info past this point has not yet been updated --------------------_
 
 # Installation
 
 ## Prerequisites
-You will need a Raspberry Pi 3 or later running at least the _Jessie_ release of Raspbian, with a SenseHat* hat properly installed.  
+You will need a Raspberry Pi 3 or later running a current version of Linux, with a SenseHat* hat properly installed. The code is not reliant on any particular family of Linux, as long as the SenseHat hardware is functioning properly
 
 If your processor did not come with the SenseHat libraries pre-installed, you must install them.
      https://www.raspberrypi.org/documentation/hardware/sense-hat/
      
 Alternatively, you can install the SenseHat EMULATOR libraries instead, and simulate the SenseHat display on the emulator.
      https://sense-emu.readthedocs.io/en/v1.1/install.html
+     (note that the emulator display executable does not work in all flavors of Linux on all processors)
+     
      
 Your Raspberry Pi must have an active internet connection for the API to function properly
      
@@ -174,7 +210,19 @@ The Ping function is based on that in the Pi-Ping program by Wesley Archer (c) 2
 
 I also want to acknowledge Alex Lennon of Dynamic Devices, whose work on a docker template for an IOT project gave me hints on getting the Qiskit install to work on my Raspberry Pi : https://github.com/DynamicDevices/does-rpi3-qiskit
 
+## <a name="previous-releases"></a> Previous releases
+#### Fifth Release: -dual option:  adding Dual Display option. The -dual parameter will spin up a Sensehat emulator as well as use the display on a physical Sensehat, if one is detected. If no physical hat is installed, this parameter is ignored and the emulator alone will be spun up.
+(Only the orientation of the physical display will change according to the rotation of the Raspberry Pi)
+
+#### Fourth Release: -local option: can run on local Aer qasm_simulator backend instead of using IBM Quantum backends via network! -noise option runs local simulator with a noise model based on a real processor. Parses newer version numbers of qiskit properly
+
+#### Third Release: will fail over to SenseHat emulator if no SenseHat hardware is detected. You may opt to send your quantum circuit to an actual quantum processor backend at IBM Quantum instead of the simulator
+
+
 ## Release History ##
+*    v6 : Rewrite for Qiskit v1.0, new "thinking" logo and command/display options. Default to local 5-qubit simulator
+*    v5 : added dual display mode
+*    v4 : added local option
 *    v3 : auto-fail over to SenseHat emulator if no SenseHat hardware is detected.
 *    v2.1 : additional queue stall exception handling
 *    v2.0 : Adapt to version of Qiskit installed
