@@ -5,4 +5,4 @@ Your Raspberry Pi running code on the IBM Quantum quantum processors via Python 
 ## April 2024 (Sixth) Release For Qiskit v1.0
 
 # This branch was merged into Main on May 1, 2024, but left here to avoid 404 errors #
-*PLEASE SWITCH TO THE MAIN BRANCH*
+*PLEASE SWITCH TO THE Main BRANCH*
