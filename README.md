@@ -7,7 +7,6 @@ Your Raspberry Pi running code on the IBM Quantum platform processors or simulat
 
 This release requires the new v 1.0 release of Qiskit and will not run with older versions of Qiskit.
 It defaults to building a local simulator and offers several new options. 
-_The rest of this readme will be updated further, including illustrations, during May 2024_
 
 It has been tested on a Raspberry Pi 4B running CentOS Stream 9. It should run on most flavors of Linux on that hardware. Earlier versions of the hardware may run short on resources. The SenseHat emulator module may not work in all flavors of Linux.
 Super short installation notes:
