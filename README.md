@@ -3,7 +3,9 @@
 Your Raspberry Pi running code on the IBM Quantum platform processors or simulators via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat (or SenseHat emulator)!
 
 ## April 2024 (Sixth) Release For Qiskit v1.0
-This release requires the new v 1.0 release of Qiskit and will not run with older versions.
+&nbsp;&nbsp;&nbsp;&nbsp;[Previous Releases](#Previous-Releases)
+
+This release requires the new v 1.0 release of Qiskit and will not run with older versions of Qiskit.
 It defaults to building a local simulator and offers several new options. 
 _The rest of this readme will be updated further, including illustrations, during May 2024_
 
@@ -14,7 +16,7 @@ Super short installation notes:
  * Make sure you have the SenseHat libraries and modules installed
  * Try running the code!
    
-** [Previous Releases] (#Previous-Releases) **
+
 
 
 This code is originally designed to run on a Raspberry Pi 3 or later with the SenseHat installed. _Note: Release 6 has only been tested on a Raspberry 4_. 
@@ -82,93 +84,101 @@ Calling a cloud simulator will leave the looping mode enabled.
 * You may also exit execution *without* a shutdown by pressing and holding the joystick button to any side. 
 * Both joystick events will be detected on the emulator as well as on the SenseHat hardware.
 
-  _------------------------   Update of this file still in progress; info past this point has not yet been updated --------------------_
-
+  
 # Installation
 
 ## Prerequisites
-You will need a Raspberry Pi 3 or later running a current version of Linux, with a SenseHat* hat properly installed. The code is not reliant on any particular family of Linux, as long as the SenseHat hardware is functioning properly
+### Hardware: Raspberry Pi and SenseHat
+You will need a Raspberry Pi 3 or later running a current version of Linux, with a SenseHat* hat properly installed. The code is not reliant on any particular family of Linux, as long as the SenseHat interface is functioning properly. At time of release, the code has been tested on a Raspberry Pi 4B running CentOS Stream 9.
 
-If your processor did not come with the SenseHat libraries pre-installed, you must install them.
+* If your processor did not come with the SenseHat libraries pre-installed, you must install them.
      https://www.raspberrypi.org/documentation/hardware/sense-hat/
      
-Alternatively, you can install the SenseHat EMULATOR libraries instead, and simulate the SenseHat display on the emulator.
+* Alternatively, you can install the SenseHat EMULATOR libraries instead, and simulate the SenseHat display on the emulator.
      https://sense-emu.readthedocs.io/en/v1.1/install.html
      (note that the emulator display executable does not work in all flavors of Linux on all processors)
      
+* To run without a SenseHat and if the emulator executable does not run on your machine/OS, you can try using my [sensefaux repository](https://github.com/KPRoche/sense_faux) in its place. This was written a couple years ago to run SenseHat code without a sensehat or raspberry pi. **It has no visual representation of the 8x8 display, but you will see all of the stdout messages printed to the terminal.** _The sensefaux library is offered as-is; I developed it for a small project and am not actively supporting it at the moment*_
+  
+* *_Yes, in theory with the sense_emu or sensefaux libaries you can run this program on a machine other than a Raspberry Pi_
+
+Your Raspberry Pi must have an active internet connection for options connecting to the IBM Quantum cloud platforms to function properly
      
-Your Raspberry Pi must have an active internet connection for the API to function properly
+### QISKit libraries and modules ###
+You will need to install the **QISKit v1.0 library**      [https://github.com/QISKit/](https://docs.quantum.ibm.com/start/install)
      
-You will need to install the **qiskit library**
-     https://github.com/QISKit/
-     
-**IMPORTANT:** this new version does require the complete QISKit library, not the simpler API library used before! 
-Installing Qiskit and the SenseHat libraries on a Raspberry Pi can be quite complicated; I hope to add more information on the correct sequence of steps to do so. I have successfully installed everything on Raspbian _buster_ running berryconda (python 3.6.6), but it took a bit of work and required compiling 
+**IMPORTANT:** this release does require the complete QISKit library, not the simpler API library used before! 
+I strongly recommend following the suggestion to create a virtual environment for your QISKit install and use it.
 
-**Release 2 is compatible with both Qiskit v0.9 and Qiskit v0.12 if you have created your stored credentials properly**
+To build noisy simulators, you will need to also install the qiskit_aer module and libraries. After the main QISKit, execute
 
-If your Raspberry Pi has more than one version of Python installed, be sure to install the QISKit API library for your Python 3 interpreter!
+    pip install qiskit-aer
 
-You must have an account set up at the IBM Quantum Experience and obtain your Personal Access Token from the My Account settings. The introductory material for the IBM Quantum Experience explains how to get that token.
+to add those modulles.
 
-## Customizing the code for your use
-**Qiskit v0.9.0** You will need to use the IBMQ.save_account() method to store your API token on your Raspberry Pi.
-
-**Qiskit v0.12.0** You will need to use the new methods to store your API token. If you have upgraded from v0.9, follow the instructions to use the IBMQ.update_account() method.
-
-The real difference between these two versions is in the authentication technique in qiskit-ibmq-provider. The new version (0.3.x) uses a _provider_ object for connections to the backend while the previous version used the IBMQ object.
+To use the cloud-based IBM Processors, or build a real-processor based noise model simulator,  you must have an account set up at the IBM Quantum Platform and obtain your API Token from the your account. After installing QISKit, activate the virtual environment for it and follow the instructions here to store your account authentication on your Raspberry Pi: https://docs.quantum.ibm.com/start/setup-channel#set-up-to-use-ibm-quantum-platform
 
 Download the source code for the QuantumRaspberryTie program and the code should be ready to run!
-Be sure to download the OPENQASM files as well (_expt.qasm_ & _expt16.qasm_) for the probram and put them in the same directory as your source file.
+Be sure to download the OPENQASM files as well (_expt.qasm_, _expt12.qasm_ & _expt16.qasm_) for the probram and put them in the same directory as your source file.
 
 # Versions
 There is now a single version of the code, which can run in one of two quantum processor-size modes. 
 Both require that the **sense-hat**, **sense-emu** and **qiskit** libraries be installed in order to function, and use the **threading**, **time**, and **datetime** modules.
 
-## QuantumRaspberryTie.qiskit.py
-Unless running with the **-local** parameter, this program tries to test its connection to the IBM Quantum website before making requests. It's designed to cope somewhat gracefully with what happens if you are running on batteries and your Raspberry Pi switches wireless access points as you move around, or are in a somewhat glitchy wifi environment. It also can now handle gracefully communications timeouts with the IBM Q backend, or the occasional glitch where the simulator queue status for a job gets stuck in "RUNNING" state.
+## QuantumRaspberryTie.qk1.py
+If running with any options requiring data from the online IBM Quantum platformUnless , this program tries to test its connection to the IBM Quantum website before making requests. It's designed to cope somewhat gracefully with what happens if you are running on batteries and your Raspberry Pi switches wireless access points as you move around, or are in a somewhat glitchy wifi environment. It also can now handle gracefully communications timeouts with the IBM Quantum cloud, or the occasional glitch where the simulator queue status for a job gets stuck in "RUNNING" state.
 
-To start the program, simply call it from its directory (on my system, the default version of python is python 3.6.6; add the version number if that is not true on your system):
-+     *python QuantumRaspberryTie*  
+To start the program, after activating the qiskit virtual environment, simply call it from its directory (on my system, the default version of python is python 3.9; add the version number if necessary on your system):
++     *python QuantumRaspberryTie.qk1*  
           will launch with the default (5-qubit) quantum circuit 
           
-+     *python QuantumRaspberryTie 16*  
++     *python QuantumRaspberryTie.qk1 16*  
           will launch with the 16-qubit circuit
-+     *python QuantumRaspberryTie* _yourprogram.qasm_  
++     *python QuantumRaspberryTie.qk1* _yourprogram.qasm_  
           will launch and attempt to load the circuit specified in file _yourprogram.qasm_
           
-## New command line parameters (can be stacked with spaces between them) ##
-+    *-e*
-          will launch and force use of the SenseHat emulator even if the SenseHat hardware is present
-+    *-dual*
-          will launch an instance of the SenseHat emulator in addition to using the hardware (if it is present)
-          Orientation of the physical display will respond to motion of the Raspberry pi
-+    *-b:backendname*
-          will attempt to use the IBM Q Experience backend *backendname* instead of the simulator.
-          If you use a non-simulator backend, the code will execute only once instead of looping.
-          if connection fails, it will fail back to the simulator
-+    *-f:qasmfilename*
-          will attempt to load the circuit specified in the file *qasmfilename*
-          if it can't load the file, will fail back to *expt.qasm*
-+    *-local*
-          will use the qiskit aer qasm_simulator backend running *on the Raspberry Pi* instead of one at IBM Quantum.
-          this can run even if there is no connectivity to the Internet
-+    *-noq*          
-          will display the rainbow wash in the qubit pattern. Without this parameter, 
-          the display will show a Q and run the rainbow wash across that while "thinking"
-+    *-tee*
-          will display 5-or-less qubit circuit results in  "tee" arrangement like the newer
-          processors instead of in the "bowtie" arrangement
-     
+## Command line parameters (can be stacked with spaces between them) 
+      Backend options:
+           -b:aer | spins up a local Aer simulator
+           -b:aer_noise or -b:aer_model | spins up a local Aer simulator with a noise model 
+               based on the least busy real processor for your account (this does require access to
+               the IBM Quantum processors and account credentials properly saved via QiskitRuntime
+           -b:least | will run code once on the least busy *real* backend for your account
+               NOTE: this may take hours before the result returns
+           -b:[backend_name] | will use the specified backend if it is available (see note above)
+        NEW display options
+           NOTE: if multiple options are specified the last one in the parameters will be applied
+           hex or -hex | displays on a 12 qubit pattern 
+                    (topologically identical to the heavy hex in IBM processors) 
+           d16 or -d16 | displays on a 16 qubit pattern
+               NOTE: overrides default or tee option for 5 qubit code!
+          -tee
+             will display 5-or-less qubit circuit results in  "tee" arrangement like the newer processors instead of in the "bowtie" arrangement
+
+               NOTE: if your quantum circuit has fewer qubits than available in the display mode, 
+                   unmeasured qubits will be displayed in purple
+                  
+        NEW interactive options 
+           -input | prompts you to add more parameters to what was on the command line
+           -select | prompts you for the backend option before initializing
+        OTHER options:
+           -16 or 16 | loads a 16-qubit QASM file and switches to a 16-bit display arrangement
+               NOTE: hex display mode will override the 16 qubit display and show only the first 12
+           -noq | does not show a logo during the rainbow "thinking" moment; instead rainbows the qubit display
+           -e | will attempt to spin up a SenseHat emulator display on your desktop. 
+           -dual | will attempt to display on BOTH the SenseHat and a emulator display
+               These require that both the libraries and a working version of the emulator executable be present
+           -f:filename load an alternate QASM file
+         
 After loading libraries, the program checks the SenseHat accelerometer to see which way the Pi is oriented. If it is flat on a table, "up" will be towards the power and display connectors on the Pi. If you wish to change the display orientation, simply hold the pi in the orientation you want until an up arrow appears on the display. The program will now use that orientation until the next cycle.
 
-The program then pings the IBM Q Experience website to make sure it has a connection; if not it will exit. 
+The program then pings the IBM Quantum Platform webserver to make sure it has a connection; if not and one is needed it will exit. 
 
 It then loads the OPENQASM code for the experiment from a separarate text file, _expt.qasm_ (or _expt16.qasm_) which makes it easier to modify your experiment code. If the first ping was successful, in each cycle it pings again before it confirms the backend status and (presuming the backend is not busy) sending the OPENQASM code. If there no good response to the ping, or the backend responds as busy, it waits 10 seconds and tries again, begining again with that initial ping to the website. 
 
-If the ping is good, it then connects to the IBM Quantum Experience API using your token and initializes the LED display (displaying a Q). It compiles the OPENQASM code into a "quantum circuit", echoes the quantum circuit drawing to the terminal. and then sends the quantum circuit to the processor to execute. While it waits for the response, it cycles the light display through a rainbow shift to indicate that the system is "thinking". Once the result is returned by the processor, the measured values of the qubits are displayed as either red (measured 0) or blue (measured 1).
+If the ping is good, it then connects to the IBM Quantum Experience API using your token and initializes the LED display (displaying a Bloch sphere logo). It compiles the OPENQASM code into a "quantum circuit", echoes the quantum circuit drawing to the terminal. and then sends the quantum circuit to the processor to execute. While it waits for the response, it cycles the light display through a rainbow shift to indicate that the system is "thinking". Once the result is returned by the processor, the measured values of the qubits are displayed as either red (measured 0) or blue (measured 1). Unused/unmeasured qubits in the display will show as purple
 
-The system will pause for a few seconds, then run the code again (flashing the Q as it starts) to display a new result. You may trigger a new run sooner by pressing the SenseHat joystick in any direction. If you want to change which way on the display is "up" simply hold the Pi in the correct orientation until the Q displays as the cycle starts (the position is measured before sending the job).
+The system will pause for a few seconds, then run the code again (flashing the logo as it starts) to display a new result. You may trigger a new run sooner by pressing the SenseHat joystick in any direction. If you want to change which way on the display is "up" simply hold the Pi in the correct orientation until the logo displays as the cycle starts (the position is measured before sending the job).
 *If you specify one of the non-simulator backends using the **-b** option, the program will not run in a loop, but will instead exit after sending the quantum circuit to IBM Q and displaying the result once. This is to avoid burning up your "credits" in the IBM Q Experience.*
 
 In each cycle, the status of the backend is checked and printed to the console, as is the quantum circuit diagram, then the probability value and measured bit pattern of the most-frequent result wich is used for the display
@@ -181,7 +191,7 @@ To stop the program and shut down the Pi, press and hold  (center press) the joy
 
 Both versions run the display by spawning a second thread. As long as the variable *thinking* is True, the rainbow cycle is run. If it is False, the value of the string variable *maxpattern* is translated into the red and blue qubit display.
 
-The "blinky" and "showqubits" functions in the code are generalized to work with a global *display* variable. Setting that to equal the list defining the 5-qubit processor (ibm_qx5) will result in the bowtie display, setting it equal to the 16 (ibm_qx16) will result in the 16 bit display. New in version 4: the default is for blinky to use the Q logo for the rainbow "thinking" display; specifying -noq as a start parameter will use the qubit pattern instead.
+The "blinky" and "showqubits" functions in the code are generalized to work with a global *display* variable. Setting that to equal the list defining the 5-qubit processor (ibm_qx5) will result in the bowtie display, to the ibm_qx5t gives the tee display, to ibm_qhex gives the 12 qubit display, and setting it equal to the 16 (ibm_qx16) will result in the 16 bit display. New since version 4: the default is for blinky to use the a logo for the rainbow "thinking" display; specifying -noq as a start parameter will use the qubit pattern instead.
 
 ## The OPENQASM code being run
 The program being run on the 5-qubit processor is very simple. 5 qubits are initialized to the ground state, a Hadamard gate is applied to each one to place it into a state of full superposition, then each is measured. The net effect is a 5-bit random number generator. Only 10 shots are run, so one pattern should always randomly end up higher in the results. The code is found in the variable *qasm* in both versions. It looks like this:
