@@ -14,7 +14,7 @@ Super short installation notes:
  * Make sure you have the SenseHat libraries and modules installed
  * Try running the code!
    
-** [Previous Releases] (#previous-releases) **
+** [Previous Releases] (#Previous-Releases) **
 
 
 This code is originally designed to run on a Raspberry Pi 3 or later with the SenseHat installed. _Note: Release 6 has only been tested on a Raspberry 4_. 
@@ -46,7 +46,8 @@ This variation of the 5-qubit display is based on the lower-noise tee connectivi
 
 Even though it looks like a diamond rather than a hexagon, this display is topologically equivalent to the 12-qubit "heavy hex" arrangement that is the building block for modern IBM quantum processors, with a qubit at each vertex of a hexagon and another at the center of each side. 
 
-<img src='12-qubit display.png' width='200' alt='Output displayed on the SenseHat' style='float:right;'><br/> 
+<img src='12-qubit display.png' width='200' alt='Output displayed on the SenseHat' style='float:right;'>
+Note that this is a 5-qubit result displayed on the 12 qubit display, so 7 of the pixel blocks are purple indicating unmeasured status
 
 #### 16-qubit display
 The 16 qubit display arrangement corresponds to one of the early experimental 16-qubit processors
@@ -210,7 +211,7 @@ The Ping function is based on that in the Pi-Ping program by Wesley Archer (c) 2
 
 I also want to acknowledge Alex Lennon of Dynamic Devices, whose work on a docker template for an IOT project gave me hints on getting the Qiskit install to work on my Raspberry Pi : https://github.com/DynamicDevices/does-rpi3-qiskit
 
-## <a name="previous-releases"></a> Previous releases
+##  Previous Releases ##
 #### Fifth Release: -dual option:  adding Dual Display option. The -dual parameter will spin up a Sensehat emulator as well as use the display on a physical Sensehat, if one is detected. If no physical hat is installed, this parameter is ignored and the emulator alone will be spun up.
 (Only the orientation of the physical display will change according to the rotation of the Raspberry Pi)
 
