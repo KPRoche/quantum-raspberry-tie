@@ -121,6 +121,76 @@ AddNoise = False
 debug = False
 qasmfileinput='expt.qasm'
 
+#----------------------------------------------------------------------------
+#       Create a SVG rendition of the pixel array
+#----------------------------------------------------------------------------
+def svg_pixels(pixel_list, brighten=1):
+    # Create canvas
+    svg_inline = '<svg width="128" height="128" version="1.1" xmlns="http://www.w3.org/2000/svg">\n'
+    # fill canvas with black background
+    #svg_inline = svg_inline +   '<rect x="0" y="0" width="128" height="128" stroke="black" fill="black" stroke-width="0"/>\n'
+    # iterate through the list
+    for i in range(64):
+        # get the coordinates
+        x = 4 * 4 * (i % 8)
+        y = 4 * 4 * (i//8)
+        pixel=pixel_list[i]
+        red=pixel[0]
+        green=pixel[1]
+        blue=pixel[2]
+        if brighten > 0:
+            red = min(int(red * brighten),255)
+            green = min(int(green * brighten),255)
+            blue = min(int(blue * brighten),255)
+        # build the "pixel" rectangle and append it
+        pixel_str=f'<rect x="{x}" y="{y}" fill="rgb({red},{green},{blue})" width="16" height="16" stroke="white" stroke-width="1"/>\n'
+        svg_inline = svg_inline + pixel_str
+
+    #close the svg
+    svg_inline = svg_inline + "</svg>"
+        
+    return svg_inline
+    
+def write_svg_file(pixels, label='0000', brighten=1, init=False):
+    # This uses multiple files to create the webpage qubit display:
+    # qubits.html is only written if init is True
+    #      It contains the refresh command and the html structure, and pulls in the other two
+    # pixels.svg holds the display pattern
+    # pixels.lbl holds the caption
+    if init:
+        print("initializing html wrapper for svg display")
+        try: #create the svg directory if it doesn't exist yet
+            os.mkdir(r'./svg')
+        except OSError as error:
+            print(error)
+        html_file = open (r'./svg/qubits.html',"w")
+        browser_str='''<!DOCTYPE html>\r<html>\r<head>\r
+                                <title>SenseHat Display</title>\r
+                                <meta http-equiv="refresh" content="2.5">\r
+                                </head>\r<body>\r
+                                <h3>Latest Display on RPi SenseHat</h3>\r
+                                <object data="pixels.html"/ height='425' width='400'>\r
+                                </body></html>'''
+        #browser_str = browser_str + '<br> Qubit Pattern: ' + label + '</body></html>'
+        html_file.write(browser_str)
+        html_file.close()        
+       
+    svg_file = open (r'./svg/pixels.html',"w")
+    #lbl_file = open (r'./svg/pixels.lbl',"w")
+    #browser_str='''<!DOCTYPE html>\r<html>\r<head>\r
+    #                            <title>SenseHat Display</title>\r
+    #                            <meta http-equiv="refresh" content="1">\r
+    #                            </head>\r<body>\r
+    #                            <h3>Latest Display on RPi SenseHat</h3>'''
+    browser_str= svg_pixels(pixels, brighten) + '\r <br/>Qubit Pattern: ' + label + '<br/><br/>\r'
+    svg_file.write(browser_str)
+    svg_file.close()  
+    #browser_str = 'Qubit Pattern: ' + label + '\r'
+    #lbl_file.write(browser_str)
+    #lbl_file.close()      
+    
+
+
 # -- prompt for any extra arguments if specified
 print(sys.argv)
 print ("Number of arguments: ",len(sys.argv))
@@ -144,6 +214,7 @@ if (len(sys.argv)>1):
         parameter = parms[p]
         if type(parameter) is str:
             print("Parameter ",p," ",parameter)
+            if 'debug' in parameter: debug = True
             if ('16' == parameter or "-16" == parameter): qasmfileinput='16'
             if '-local' in parameter: UseLocal = True      # use the aer local simulator instead of the web API
             if '-nois' in parameter:                       # add noise model to local simulator
@@ -178,6 +249,7 @@ if (len(sys.argv)>1):
                     qasmfileinput = value  # if the key is -f, specify the qasm file
                     print("-f option: filename",qasmfileinput)
                 elif '-nois' in token: fake_name = value
+            if debug: input("press Enter to continue")
              
       
 print ("QASM File input",qasmfileinput)
@@ -384,6 +456,7 @@ hues = [
     ]
 
 pixels = [hsv_to_rgb(h, 1.0, 1.0) for h in hues]
+qubits = pixels
 
 # scale lets us do a simple color rotation of hues and convert it to RGB in pixels
 
@@ -399,8 +472,9 @@ def resetrainbow(show=False):
        if DualDisplay: hat2.set_pixels(pixels)
 
 def showqubits(pattern='0000000000000000'):
-   global hat
+   global hat, qubits
    padding=''
+   svgpattern=pattern
    if len(pattern)<len(display):
        for x in range(len(display)-len(pattern)):
             padding = padding + '0'
@@ -417,9 +491,12 @@ def showqubits(pattern='0000000000000000'):
       else:                       # otherwise assign it red
          for p in display[q]:     
             pixels[p]=[255,0,0]
-
+   qubits=pixels
+   qubitpattern=pattern
    hat.set_pixels(pixels)         # turn them all on
+   write_svg_file(pixels, svgpattern, 2.5, False)
    if DualDisplay: hat2.set_pixels(pixels)
+   #write_svg_file(qubits,2.5)
    
 #--------------------------------------------------
 #    blinky lets us use the rainbow rotation code to fill the bowtie pattern
@@ -430,7 +507,7 @@ def showqubits(pattern='0000000000000000'):
 #------------------------------------------------------
 
 def blinky(time=20,experimentID=''):
-   global pixels,hues,experiment, Qlogo, showlogo, QArcs, QKLogo, QHex
+   global pixels,hues,experiment, Qlogo, showlogo, QArcs, QKLogo, QHex, qubits, qubitpattern
    if QWhileThinking:
        mask = QKLogo_mask
    else:
@@ -633,7 +710,7 @@ def ping(website='https://quantum-computing.ibm.com/',repeats=1,wait=0.5,verbose
 #       If we get a 200 response, the site is live and we initialize our connection to it
 #-------------------------------------------------------------------------------
 def startIBMQ():
-    global Q, backend, UseLocal
+    global Q, backend, UseLocal, backendparm
     # This version written to work only with the new QiskitRuntimeService module from Qiskit > v1.0
     sQPV = IBMQVersion
     pd = '.'
@@ -671,13 +748,7 @@ def startIBMQ():
                 Qservice=QiskitRuntimeService()
                 if "aer" in backendparm:
                     from qiskit_aer import AerSimulator
-                    #from qiskit.circuit.library import RealAmplitudes
-                    #from qiskit.circuit import QuantumCircuit, QuantumRegister, ClassicalRegister
-                    #from qiskit.quantum_info import SparsePauliOp
-                    #from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
-                    #from qiskit_ibm_runtime import SamplerV2 as Sampler
-                    #Qservice=QiskitRuntimeService()
-                    if "model" in backendparm or "nois" in backendparm:
+                    if "model" in backendparm or "nois" in backendparm or AddNoise:
                         print("getting a real backend connection for aer model")
                         real_backend = Qservice.least_busy(simulator=False)#operational=True, backend("ibm_brisbane")
                         print("creating AerSimulator modeled from ",real_backend.name)
@@ -706,10 +777,10 @@ def startIBMQ():
         backend='local aer qasm_simulator'
         print ("Building ",backend, "with requested attributes...")
         if not AddNoise:
-            Q = FakeManilaV2() #Aer.get_backend('qasm_simulator')
+            from qiskit_aer import AerSimulator
+            Q = AerSimulator()  #Aer.get_backend('qasm_simulator')
         else:
-            fake_backend = fake_qc()
-            Q = QasmSimulator.from_backend(fake_backend)
+            Q = FakeManilaV2() 
 #-------------------------------------------------------------------------------
 
 
@@ -724,7 +795,8 @@ def startIBMQ():
 # Instantiate an instance of our glow class
 print("Instantiating glow...")
 glowing = glow()
-
+# create the html shell file
+write_svg_file(pixels, maxpattern, 2.5, True)
 #-------------------------------------------------
 #  OK, let's get this shindig started
 #-------------------------------------------------
@@ -770,7 +842,7 @@ else:
         maxpattern='00000'
     
     print ("circuit width: ",qubits_needed," using 5 qubit display")
-
+qubitpattern=maxpattern
 #backend='simulator' 
 rainbowTie.start()                          # start the display thread
 
@@ -864,6 +936,7 @@ while Looping:
                            counts=result.get_counts(qcirc)   
                            #print("counts:",counts)
                            maxpattern=max(counts,key=counts.get)
+                           qubitpattern=maxpattern
                            maxvalue=counts[maxpattern]
                            print("Maximum value:",maxvalue, "Maximum pattern:",maxpattern)
                            if UseLocal:
@@ -877,7 +950,8 @@ while Looping:
                     #    print(Q.name, qjob.job_id(), 'problem; waiting to try again')
        #else:
         #   print(p,'response to ping; waiting to try again')
-
+   #print("qubit list",qubits)
+   #write_svg_file(qubits,maxpattern, 2.5)
    goAgain=False                    # wait to do it again
    if Looping: print('Waiting ',interval,'s before next run...')
    
