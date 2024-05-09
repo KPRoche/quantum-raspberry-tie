@@ -20,13 +20,14 @@ Super short installation notes:
 
 This code is originally designed to run on a Raspberry Pi 3 or later with the SenseHat installed. _Note: Release 6 has only been tested on a Raspberry 4_. 
 The 8x8 array on the SenseHat is used to display the results.
-Alternatively, if no SenseHat is detected, it will attempt to launch and use the display on a SenseHat emulator session instead. _Note that emulator display executable does not work on all processors in all flavors of Linux_
+Alternatively, if no SenseHat is detected, it will attempt to launch and use the display on a SenseHat emulator session instead. _Note that emulator display executable does not work on all processors in all flavors of Linux_. A new SVG rendering function offers an alternative to that executable.
 
 If the Pi is held on edge, the accelerometer is used to determine which edge is "up" and orients the qubit display accordingly (default is "up" equals towards the HDMI and USB power in ports).
 This version asseses the QASM program being loaded and selects either a 5-qubit or 16-qubit display accordingly. The default is to load and run a 5-qubit random number-generating program.
 ### Display modes
 The output of running the quantum circuit is represented as a series of colored pixel blocks on the 8x8 matrix. A blue block indicates a measured "1" and a red block a measured "0". If the circuit uses/measures fewer qubits than the display can represent, unmeasured qubits are represented as a dimmer purple/lavendar color.
-(The assorted pixel block patterns actually correspond to various qubit arrangements on the physical processors during the history of their development; they don't map the actual connectivity of the backend/simulator used to run the quantum circut.)
+(The assorted pixel block patterns actually correspond to various qubit arrangements on the physical processors during the history of their development; they don't map the actual connectivity of the backend/simulator used to run the quantum circuit.)
+An svg vector rendering of the array is also created and written to a folder that can be displayed via browser. This offers a view of the qubit display without requiring the sense-emu executable or a physical LED display, and will also work if accessed remotely.
 
 #### 5-qubit displays 
 **Bowtie** 
@@ -54,6 +55,15 @@ Note that this is a 5-qubit result displayed on the 12 qubit display, so 7 of th
 The 16 qubit display arrangement corresponds to one of the early experimental 16-qubit processors
 <br /><img src='ibm_16_qubit_processor-100722935-large.3x2.jpg' width='200' alt='IBM 16 qubit processor' style='float:left;'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 <img src='16-bitRpi-result.JPG' width='200' alt='16 qubit Output displayed on the SenseHat' style='float:right;'><br/>
+
+#### SVG alternate display
+As it starts, the program will create a **svg** subdirectory if one does not exist, and write (or rewrite) into it first a file named **qubits.html** and then cyclicly update another named **pixels.html** every time the main code executes the "showqubits" function.
+* _qubits.html_ is an html wrapper set to refresh every 2 seconds when opened in a browser. It will repeatedly load _pixels.html_
+* _pixels.html_ contains an svg rendering of the 8x8 pixel array, and a caption below it showing the qubit pattern being represented
+
+<img src='SVG%20display%20tee.png' width ='200' alt='SVG rendering of tee display'> <img src='svg%20display%2012%20on%20hex12.png' width='200' alt='SVG rendering of 12 qubits on 12 qubit (hex) display'> <img src='svg%20display%205%20on%20hex12.png' width='200' alt='SVG rendering of 5 qubits on 12 qubit (hex) display'>
+
+Once the program is looping, if there is no physical LED array, you can watch the results of the program iteration by just opening _./svg/qubits.html_ in a browser window and leave it open; there can be a few seconds time lag between the result is returned and when the svg image updates.
 
 ### Quantum Processor options ###
 _This behavior has changed significantly for Release 6 to reflect the changes in the IBM Quantum platform and Qiskit V1.0_
@@ -180,7 +190,7 @@ If the ping is good, it then connects to the IBM Quantum Experience API using yo
 The system will pause for a few seconds, then run the code again (flashing the logo as it starts) to display a new result. You may trigger a new run sooner by pressing the SenseHat joystick in any direction. If you want to change which way on the display is "up" simply hold the Pi in the correct orientation until the logo displays as the cycle starts (the position is measured before sending the job).
 *If you specify one of the non-simulator backends using the **-b** option, the program will not run in a loop, but will instead exit after sending the quantum circuit to IBM Q and displaying the result once. This is to avoid burning up your "credits" in the IBM Q Experience.*
 
-In each cycle, the status of the backend is checked and printed to the console, as is the quantum circuit diagram, then the probability value and measured bit pattern of the most-frequent result wich is used for the display
+In each cycle, the status of the backend is checked and printed to the console, as is the quantum circuit diagram, then the probability value and measured bit pattern of the most-frequent result which is used for the display subroutine going out to the LED arrays and SVG rendering
 
 To stop the loop and exit execution, press and hold the joystick button on the SenseHat to any of the 4 sides.
 
