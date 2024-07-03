@@ -46,7 +46,7 @@ This variation of the 5-qubit display is based on the lower-noise tee connectivi
 #### 12-qubit displays
 **Hex**
 
-Even though it looks like a diamond rather than a hexagon, this display is topologically equivalent to the 12-qubit "heavy hex" arrangement that is the building block for modern IBM quantum processors, with a qubit at each vertex of a hexagon and another at the center of each side. 
+Even though it looks like a diamond rather than a hexagon, this display is topologically equivalent to the 12-qubit "heavy hex" arrangement that is the building block for many modern IBM quantum processors, with a qubit at each vertex of a hexagon and another at the center of each side. 
 
 <img src='12-qubit display.png' width='200' alt='Output displayed on the SenseHat' style='float:right;'>
 Note that this is a 5-qubit result displayed on the 12 qubit display, so 7 of the pixel blocks are purple indicating unmeasured status
