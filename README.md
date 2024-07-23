@@ -12,6 +12,7 @@ It has been tested on a Raspberry Pi 4B running CentOS Stream 9. It should run o
 Super short installation notes:
  * Follow instructions for creating a python 3 virtual environment and installing Qiskit 1.0. at https://docs.quantum.ibm.com/start/install
  * Then follow the instructions for saving your IBM Quantum Platform account to your local machine (if you want to use real backends or build simulators based on real backends) https://docs.quantum.ibm.com/start/setup-channel#set-up-to-use-ibm-quantum-platform
+ * **NOTE** If the code suddenly starts throwing errors trying to authenticate your saved token may have simply expired. Repeat the procedure for saving your IBM Quantum account info and it should restore functionality.
  * Make sure you have the SenseHat libraries and modules installed
  * Try running the code!
    
