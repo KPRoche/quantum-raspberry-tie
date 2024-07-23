@@ -90,7 +90,8 @@ from time import process_time          # used for loop timer
 print("       ....sleep")
 from time import sleep                 #used for delays
 print("       ....qiskit QiskitRuntimeService")
-from qiskit_ibm_runtime import QiskitRuntimeService               # classes for accessing IBM Quantum online services
+from qiskit_ibm_runtime import QiskitRuntimeService, accounts            # classes for accessing IBM Quantum online services
+from qiskit_ibm_runtime.accounts.exceptions import AccountNotFoundError   # to handle missing account info
 print("       ....QuantumCircuit and transpile")
 from qiskit import QuantumCircuit, transpile, qiskit
 from qiskit.providers import JobStatus
@@ -101,6 +102,7 @@ from qiskit_aer import Aer
 print("       ....warnings")
 import warnings
 
+#AccountException=accounts.exception(AccountNotFoundError)
 IBMQVersion = qiskit.__version__
 print(IBMQVersion)
 
@@ -169,7 +171,7 @@ def write_svg_file(pixels, label='0000', brighten=1, init=False):
                                 <meta http-equiv="refresh" content="2.5">\r
                                 </head>\r<body>\r
                                 <h3>Latest Display on RPi SenseHat</h3>\r
-                                <object data="pixels.html"/ height='425' width='400'>\r
+                                <object data="pixels.html"  width='400'/ >\r
                                 </body></html>'''
         #browser_str = browser_str + '<br> Qubit Pattern: ' + label + '</body></html>'
         html_file.write(browser_str)
@@ -216,6 +218,7 @@ if (len(sys.argv)>1):
             print("Parameter ",p," ",parameter)
             if 'debug' in parameter: debug = True
             if ('16' == parameter or "-16" == parameter): qasmfileinput='16'
+            if ('12' == parameter or "-12" == parameter): qasmfileinput='12'
             if '-local' in parameter: UseLocal = True      # use the aer local simulator instead of the web API
             if '-nois' in parameter:                       # add noise model to local simulator
                 UseLocal = True
@@ -643,6 +646,7 @@ scriptfolder = os.path.dirname(os.path.realpath("__file__"))
  # qasmfilename=sys.argv[1]
 #  print ("input arg:",qasmfilename)
 if (qasmfileinput == '16'):    qasmfilename='expt16.qasm' 
+if (qasmfileinput == '12'):    qasmfilename='expt12.qasm' 
 else: qasmfilename = qasmfileinput
   #qasmfilename='expt.qasm'
 print("QASM File:",qasmfilename)
@@ -709,7 +713,7 @@ def ping(website='https://quantum-computing.ibm.com/',repeats=1,wait=0.5,verbose
 #       Here we attempt to ping the IBM Quantum Computing API servers. If no response, we exit
 #       If we get a 200 response, the site is live and we initialize our connection to it
 #-------------------------------------------------------------------------------
-def startIBMQ():
+def StartQuantumService():
     global Q, backend, UseLocal, backendparm
     # This version written to work only with the new QiskitRuntimeService module from Qiskit > v1.0
     sQPV = IBMQVersion
@@ -745,7 +749,20 @@ def startIBMQ():
         if p==200:
             if (IBMQP_Vers >= 1):   # The new authentication technique with provider as the object
                 print("trying to create backend connection")
-                Qservice=QiskitRuntimeService()
+                try:
+                    Qservice=QiskitRuntimeService()
+                except AccountNotFoundError as e:
+                #    print("IBM Quantum account not found. Please follow the instructions at \r'https://docs.quantum.ibm.com/guides/setup-channel#set-up-to-use-ibm-quantum-platform' \r to store your account credentials")
+                # 
+                #    quit()
+                #except Exception as e:
+                    print("Error creating runtime service")
+                    print(e)
+                    print("This usually means your IBM Quantum account was not found, or your token has expired.")
+                    print ("Please follow the instructions at ")
+                    print("     https://docs.quantum.ibm.com/guides/setup-channel#set-up-to-use-ibm-quantum-platform")
+                    print ("to store your account credentials")
+                    quit()
                 if "aer" in backendparm:
                     from qiskit_aer import AerSimulator
                     if "model" in backendparm or "nois" in backendparm or AddNoise:
@@ -816,7 +833,7 @@ qcirc=QuantumCircuit.from_qasm_str(qasm)
 qubits_needed = qcirc.num_qubits
 
 rainbowTie = Thread(target=glowing.run)     # create the display thread
-startIBMQ()                                  # try to connect and instantiate the IBMQ 
+StartQuantumService()                                  # try to connect and instantiate the IBMQ 
 
 qcirc=QuantumCircuit.from_qasm_str(qasm)   
 try:
