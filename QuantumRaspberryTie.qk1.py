@@ -171,7 +171,7 @@ def write_svg_file(pixels, label='0000', brighten=1, init=False):
                                 <meta http-equiv="refresh" content="2.5">\r
                                 </head>\r<body>\r
                                 <h3>Latest Display on RPi SenseHat</h3>\r
-                                <object data="pixels.html"  width='400'/ >\r
+                                <object data="pixels.html"  width='400' height='500'/ >\r
                                 </body></html>'''
         #browser_str = browser_str + '<br> Qubit Pattern: ' + label + '</body></html>'
         html_file.write(browser_str)
