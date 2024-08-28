@@ -2,7 +2,7 @@
 <img src='New Logo Screen.png' width='150' alt='display while waiting for results' style='float:right;'><br/> 
 Your Raspberry Pi running code on the IBM Quantum platform processors or simulators via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat (or SenseHat emulator)!
 
-## April 2024 (Sixth) Release For Qiskit v1.0
+## April 2024 (Sixth) Release For Qiskit v1.x
 &nbsp;&nbsp;&nbsp;&nbsp;[Previous Releases](#Previous-Releases)
 
 This release requires the new v 1.0 release of Qiskit and will not run with older versions of Qiskit.
