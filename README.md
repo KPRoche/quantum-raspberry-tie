@@ -117,7 +117,7 @@ You will need a Raspberry Pi 3 or later running a current version of Linux, with
 Your Raspberry Pi must have an active internet connection for options connecting to the IBM Quantum cloud platforms to function properly
      
 ### QISKit libraries and modules ###
-You will need to install the **QISKit v1.0 library**      [https://github.com/QISKit/](https://docs.quantum.ibm.com/start/install)
+You will need to install the **QISKit v1.x library**      [https://github.com/QISKit/](https://docs.quantum.ibm.com/start/install)
      
 **IMPORTANT:** this release does require the complete QISKit library, not the simpler API library used before! 
 I strongly recommend following the suggestion to create a virtual environment for your QISKit install and use it.
