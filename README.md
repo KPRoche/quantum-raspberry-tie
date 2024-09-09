@@ -2,18 +2,20 @@
 <img src='New Logo Screen.png' width='150' alt='display while waiting for results' style='float:right;'><br/> 
 Your Raspberry Pi running code on the IBM Quantum platform processors or simulators via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat (or SenseHat emulator)!
 
-## April 2024 (Sixth) Release For Qiskit v1.x
+## August 2024 update to April 2024 (Sixth) Release For Qiskit v1.x
 &nbsp;&nbsp;&nbsp;&nbsp;[Previous Releases](#Previous-Releases)
 
-This release requires the new v 1.0 release of Qiskit and will not run with older versions of Qiskit.
+This release requires the new v 1.x release of Qiskit and will not run with older versions of Qiskit.
+*As of 28 August 2024 it has been tested with Qiskit 1.2, QiskitRuntime 0.28 and Qiskit Aer 0.14.2*
 It defaults to building a local simulator and offers several new options. 
+
 
 It has been tested on a Raspberry Pi 4B running CentOS Stream 9. It should run on most flavors of Linux on that hardware. Earlier versions of the hardware may run short on resources. The SenseHat emulator module may not work in all flavors of Linux.
 Super short installation notes:
  * Follow instructions for creating a python 3 virtual environment and installing Qiskit 1.0. at https://docs.quantum.ibm.com/start/install
  * Then follow the instructions for saving your IBM Quantum Platform account to your local machine (if you want to use real backends or build simulators based on real backends) https://docs.quantum.ibm.com/start/setup-channel#set-up-to-use-ibm-quantum-platform
  * **NOTE** If the saved credentials don't exist or have expired, the program will exit with a link to instructions on how to save them properly. Also, your saved token may have simply expired. In that case, repeat the procedure for saving your IBM Quantum account info and it should restore functionality.
- * Make sure you have the SenseHat libraries and modules installed
+ * Make sure you have the SenseHat libraries and modules installed -- *See the hardware notes about using my as-is sense-faux library if the emulator fails*
  * Try running the code!
    
 
