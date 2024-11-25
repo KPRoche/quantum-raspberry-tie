@@ -2,6 +2,14 @@
 #     QuantumRaspberryTie.qk1_local
 #       by KPRoche (Kevin P. Roche) (c) 2017,2018,2019,2020,2021,2022.2024
 #
+# ---------------------  November 2024 Update
+#      
+#     Interactive dialog prompt "-int" added to set up parameters
+#       Added to optimize running automatically on Rasqberry Pi System Two
+#
+#
+#
+#
 #     NEW RELEASE 
 #     April 2024 to accomodate the official release of Qiskit 1.0
 #     using new QiskitRuntime libraries and call techniques;
@@ -200,12 +208,100 @@ print ("Number of arguments: ",len(sys.argv))
 # first check for interactive input request
 if (len(sys.argv)>1):  
     parmlist = sys.argv
+    if "-debug" in sys.argv: debug = True
+    #-- pause to add additional paraeter flags triggered by -input keyword
     if "-input" in sys.argv:
         bparmstr = input("add any additional parameters to the initial program call:\n")
         if len(bparmstr) > 0:
             bparms = bparmstr.split()
             print("Command parms:",parmlist,"extra parms:",bparms)
             parms = parmlist + bparms
+    #-- interactive demo parameter etup triggered by -int keyword. Other parameters except for debug will be discarded
+    elif  "-int" in sys.argv        :
+    
+        print("Welcome to the Quantum Raspberry Tie demonstration.\n Select your preferences for this run: \n Hitting enter will select the default.")
+        # First question: how many qubits?
+        bparmstr = input("\nHow many qubits in the demo: 5, 12 or 16? (default 5)\n>")
+        if len(bparmstr) > 0:
+            if (int(bparmstr) == 16): 
+                qasmfileinput = '16'
+                qubits_needed = 16
+                #parmlist = parmlist + ["-16"]
+            elif (int(bparmstr) == 12): 
+                qasmfileinput = '12'
+                qubits_needed = 12
+                #parmlist = parmlist + ["-12"]
+            # otherwise standard 5 qubit demo will be run so nothing needs to be set
+        print("Number of qubits: ",qubits_needed)
+        
+        # Second question: display format. Depends on number of qubits needed
+        if qubits_needed<16:    # if we need 16 qubits only one display mode works
+            dispmode="tee"
+            if qubits_needed == 5:
+                bparmstr=input("\nWhich display format would you prefer? (Extra qubits do not impact simulation\n1: 5-qubit tee, 2: 5-qubit bowtie, 3: 12-qubit hex, 4: 16-qubit rows (default is tee)\n>")
+                if len(bparmstr) > 0:
+                    try: selector=int(bparmstr)
+                    except: selector=0
+                    if   ("16" in bparmstr or "rows" in bparmstr or selector == 4):   dispmode = "q16"
+                    elif ("12" in bparmstr or "hex"  in bparmstr or selector == 3):  dispmode = "hex"
+                    elif ("bow" in bparmstr or "tie" in bparmstr or selector == 2): dispmode = "bow"
+                    else: parmlist=["-tee"]
+                else: 
+                    dispmode = "-tee"
+                    UseTee = True
+            else:
+                bparmstr=input("Which display format would you prefer? (Extra qubits do not impact simulation\n 1: 12-qubit hex, 2: 16-qubit rows (default is hex)\n>")
+                if len(bparmstr)>0 :
+                    try: selector=int(bparmstr)
+                    except: selector=0
+                    if ("16" in bparmstr or "rows" in bparmstr or selector == 2):   dispmode = "q16"
+                else:                                                                  dispmode = "hex"
+                
+        else:                                                                          dispmode = "q16"
+        print("Display mode selected: ",dispmode)
+        parmlist = parmlist + [dispmode]
+        # Third question: what kind of backend to use. This gets more complicated
+        tempstr=("\nDo you want to run the demo on a local simulator (recommended) or a real quantum processor backend?\n "
+                 "NOTE: Connection to real backend requires stored IBM Quantum credentials.\n "
+                 "Warning: The demo will attempt to connect to the least-busy real backend availabile, however \n"
+                 "Running on a real backend may take some time to complete and will only run a single job of the quantum circuit\n\n"
+                 "Do you wish to 1: run a local simulator or 2: connect to a real backend? (default: local)\n>" )
+        bparmstr=input(tempstr)
+        if len(bparmstr)>0 :
+            try: selector=int(bparmstr)
+            except: selector=0
+            if (selector == 2 or "real" in bparmstr):  parmlist=parmlist + ["backend:least"]
+            else:
+                if qubits_needed <= 5:
+                    tempstr=("\nWhat kind of local simulator do you want to run?\n"
+                             "1: A simple 5-qubit local noisy model simulator (FakeManilaV2)\n"
+                             "2: A basic local Aer simulator (no noise model)\n"
+                             "3: An Aer simulator with a noise model based on a real processor?\n"
+                             "    NOTE: option 3 requires stored IBM Quantum credentials\n"
+                             "The default for 5 qubits is option 1, a local FakeManilaV2 simulator\n\n"
+                             "Which simulator model? 1:local 5-qubit, 2:local Aer, 3: local Aer with real noise model\n>")
+                    bparmstr = input(tempstr) 
+                    if len(bparmstr)>0:
+                        try: selector=int(bparmstr)
+                        except: selector=0
+                        if   (selector == 3 or "real" in bparmstr)   :   parmlist = parmlist + ["-b:aernoise"]
+                        elif (selector == 2 or "aer" in bparmstr)    :   parmlist = parmlist + ["b:aer"]
+                    else:                                               parmlist = parmlist + ["-local"]
+                else: # more than 5 qubits
+                    tempstr=("\nWhat kind of local simulator do you want to run?\n"
+                             "1: A basic local Aer simulator (no noise model)\n"
+                             "2: An Aer simulator with a noise model based on a real processor?\n"
+                             "    NOTE: option 2 requires stored IBM Quantum credentials\n"
+                             "The default for >5 qubits is option 1, a basic local Aer simulator\n\n"
+                             "Which simulator model? 1:local Aer, 2: local Aer with real noise model?\n>")
+                    bparmstr = input(tempstr) 
+                    if len(bparmstr)>0:
+                        try: selector=int(bparmstr)
+                        except: selector=0
+                        if (selector == 2  or "real" in bparmstr)     :   parmlist = parmlist + ["-b:aernoise"]
+                    else:                                                   parmlist = parmlist + ["b:aer"]
+                    
+        parms = parmlist    
     else: parms = parmlist
     print("all parms:",parms)
     if debug: input("Press Enter to continue")
@@ -224,6 +320,7 @@ if (len(sys.argv)>1):
                 UseLocal = True
                 AddNoise = True
             if '-noq' in parameter: QWhileThinking = False # do the rainbow wash across the qubit pattern while "thinking"
+            if 'bow' in parameter or 'tie' in parameter : useTee = False
             if '-tee' in parameter: 
                 UseTee = True          # use the new tee-shaped 5 qubit layout for the display
                 
@@ -231,7 +328,7 @@ if (len(sys.argv)>1):
                 UseHex = True          # use the heavy hex 12 qubit layout for the display
                 UseTee = False         # (and give it precedence over the tee display
             if 'q16' in parameter: 
-                UseQ16 = True          # use the 12 qubit layout for the display
+                UseQ16 = True          # use the 16 qubit layout for the display
                 UseTee = False         # (and give it precedence over the tee display
                 UseHex = False
                     
@@ -645,8 +742,8 @@ scriptfolder = os.path.dirname(os.path.realpath("__file__"))
   #print (type(sys.argv[1]))
  # qasmfilename=sys.argv[1]
 #  print ("input arg:",qasmfilename)
-if (qasmfileinput == '16'):    qasmfilename='expt16.qasm' 
-if (qasmfileinput == '12'):    qasmfilename='expt12.qasm' 
+if ('16' in  qasmfileinput):    qasmfilename='expt16.qasm' 
+elif ('12' in qasmfileinput):    qasmfilename='expt12.qasm' 
 else: qasmfilename = qasmfileinput
   #qasmfilename='expt.qasm'
 print("QASM File:",qasmfilename)
