@@ -2,6 +2,18 @@
 <img src='New Logo Screen.png' width='150' alt='display while waiting for results' style='float:right;'><br/> 
 Your Raspberry Pi running code on the IBM Quantum platform processors or simulators via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat (or SenseHat emulator)!
 
+## November 2024 update 
+
+A new _-int_ (for "interactive") option has been added. Starting the program with the -int parameter will prompt the user through a series of dialogs to select 
+
+- Number of qubits (5, 12 or 16)
+- Display mode (bowtie, tee, "hex" diamond, or 16-qubit rows, as appropriate for number of qubits)
+- local simulator or online backend
+- simulator model to use (dependent on number of qubits specified)
+
+All previous options are still available if the program is invoked via the command line. The interactive mode was added to make the program more useful as a demo on menu-driven demo setups like the RasQberry Pi project.
+
+
 ## August 2024 update to April 2024 (Sixth) Release For Qiskit v1.x
 &nbsp;&nbsp;&nbsp;&nbsp;[Previous Releases](#Previous-Releases)
 
