@@ -270,7 +270,9 @@ if (len(sys.argv)>1):
         if len(bparmstr)>0 :
             try: selector=int(bparmstr)
             except: selector=0
-            if (selector == 2 or "real" in bparmstr):  parmlist=parmlist + ["-b:least"]
+            if (selector == 2 or "real" in bparmstr):  
+                parmlist=parmlist + ["-b:least"]
+                UseLocal = False
             else:
                 if qubits_needed <= 5:
                     tempstr=("\nWhat kind of local simulator do you want to run?\n"
@@ -284,8 +286,8 @@ if (len(sys.argv)>1):
                     if len(bparmstr)>0:
                         try: selector=int(bparmstr)
                         except: selector=0
-                        if   (selector == 3 or "real" in bparmstr)   :   parmlist = parmlist + ["-b:aernoise"]
-                        elif (selector == 2 or "aer" in bparmstr)    :   parmlist = parmlist + ["b:aer"]
+                        if   (selector == 3 or "real" in bparmstr)   :  parmlist = parmlist + ["-b:aermodel"]
+                        elif (selector == 2 or "aer" in bparmstr)    :  parmlist = parmlist + ["-b:aer"]
                     else:                                               parmlist = parmlist + ["-local"]
                 else: # more than 5 qubits
                     tempstr=("\nWhat kind of local simulator do you want to run?\n"
@@ -298,8 +300,8 @@ if (len(sys.argv)>1):
                     if len(bparmstr)>0:
                         try: selector=int(bparmstr)
                         except: selector=0
-                        if (selector == 2  or "real" in bparmstr)     :   parmlist = parmlist + ["-b:aernoise"]
-                    else:                                                   parmlist = parmlist + ["b:aer"]
+                        if (selector == 2  or "real" in bparmstr)     : parmlist = parmlist + ["-b:aernoise"]
+                    else:                                               parmlist = parmlist + ["-b:aer"]
                     
         parms = parmlist    
     else: parms = parmlist
