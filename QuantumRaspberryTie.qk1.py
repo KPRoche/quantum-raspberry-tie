@@ -863,8 +863,8 @@ def StartQuantumService():
                     # If answer is yes, gather information:
                     if len(savetoken)>0 and ("y" in savetoken or "Y" in savetoken):
                         # Account on IBM Quantum or IBM Cloud?
-                        savetoken=input("Is your account on 1) IBM Quantum or 2) IBM Cloud?\n (IBM Cloud)")
-                        if len(savetoken)>0 or "2" in savetoken or "loud" in savetoken:
+                        savetoken=input("Is your account on 1) IBM Quantum or 2) IBM Cloud?\n (IBM Quantum)")
+                        if len(savetoken)>0 and ( "2" in savetoken or "loud" in savetoken):
                             qchannel='ibm_cloud'
                             tokenlist=('You will need your account,\n'
                                         'the API Key from https://cloud.ibm.com/iam/apikeys,\n'
