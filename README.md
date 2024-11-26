@@ -158,7 +158,9 @@ There is now a single version of the code, which can run in one of two quantum p
 Both require that the **sense-hat**, **sense-emu** and **qiskit** libraries be installed in order to function, and use the **threading**, **time**, and **datetime** modules.
 
 ## QuantumRaspberryTie.qk1.py
-If running with any options requiring data from the online IBM Quantum platformUnless , this program tries to test its connection to the IBM Quantum website before making requests. It's designed to cope somewhat gracefully with what happens if you are running on batteries and your Raspberry Pi switches wireless access points as you move around, or are in a somewhat glitchy wifi environment. It also can now handle gracefully communications timeouts with the IBM Quantum cloud, or the occasional glitch where the simulator queue status for a job gets stuck in "RUNNING" state.
+If running with any options requiring data from the online IBM Quantum platform, this program tries to test its connection to the IBM Quantum website before making requests. 
+It will prompt for authentication information and save it via the QiskitRuntime.save_account() method if you wish to do so.
+It's designed to cope somewhat gracefully with what happens if you are running on batteries and your Raspberry Pi switches wireless access points as you move around, or are in a somewhat glitchy wifi environment. It also can now handle gracefully communications timeouts with the IBM Quantum cloud, or the occasional glitch where the simulator queue status for a job gets stuck in "RUNNING" state.
 
 To start the program, after activating the qiskit virtual environment, simply call it from its directory (on my system, the default version of python is python 3.9; add the version number if necessary on your system):
 +     *python QuantumRaspberryTie.qk1*  
@@ -191,6 +193,7 @@ To start the program, after activating the qiskit virtual environment, simply ca
                    unmeasured qubits will be displayed in purple
                   
         NEW interactive options 
+           -int   | ignores any other command line parameters except debug, and guides the user to set up a run via interactive prompts.
            -input | prompts you to add more parameters to what was on the command line
            -select | prompts you for the backend option before initializing
         OTHER options:
@@ -205,6 +208,7 @@ To start the program, after activating the qiskit virtual environment, simply ca
 After loading libraries, the program checks the SenseHat accelerometer to see which way the Pi is oriented. If it is flat on a table, "up" will be towards the power and display connectors on the Pi. If you wish to change the display orientation, simply hold the pi in the orientation you want until an up arrow appears on the display. The program will now use that orientation until the next cycle.
 
 The program then pings the IBM Quantum Platform webserver to make sure it has a connection; if not and one is needed it will exit. 
+If access to real quantum backends is required, it confirms that authentication is successful; if not, it will offer the option to prompt and store account information for either IBM Quantum or IBM Cloud authentication.
 
 It then loads the OPENQASM code for the experiment from a separarate text file, _expt.qasm_ (or _expt16.qasm_) which makes it easier to modify your experiment code. If the first ping was successful, in each cycle it pings again before it confirms the backend status and (presuming the backend is not busy) sending the OPENQASM code. If there no good response to the ping, or the backend responds as busy, it waits 10 seconds and tries again, begining again with that initial ping to the website. 
 
