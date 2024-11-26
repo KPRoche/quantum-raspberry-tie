@@ -270,7 +270,7 @@ if (len(sys.argv)>1):
         if len(bparmstr)>0 :
             try: selector=int(bparmstr)
             except: selector=0
-            if (selector == 2 or "real" in bparmstr):  parmlist=parmlist + ["backend:least"]
+            if (selector == 2 or "real" in bparmstr):  parmlist=parmlist + ["-b:least"]
             else:
                 if qubits_needed <= 5:
                     tempstr=("\nWhat kind of local simulator do you want to run?\n"
