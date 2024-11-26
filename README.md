@@ -2,7 +2,9 @@
 <img src='New Logo Screen.png' width='150' alt='display while waiting for results' style='float:right;'><br/> 
 Your Raspberry Pi running code on the IBM Quantum platform processors or simulators via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat (or SenseHat emulator)!
 
-## November 2024 update 
+## November 2024 updates
+
+### New Interactive dialog option (_-int_)
 
 A new _-int_ (for "interactive") option has been added. Starting the program with the -int parameter will prompt the user through a series of dialogs to select 
 
@@ -12,6 +14,12 @@ A new _-int_ (for "interactive") option has been added. Starting the program wit
 - simulator model to use (dependent on number of qubits specified)
 
 All previous options are still available if the program is invoked via the command line. The interactive mode was added to make the program more useful as a demo on menu-driven demo setups like the RasQberry Pi project.
+
+### Assistance saving authentication credentials for IBM Quantum or IBM Cloud access
+
+If a real processor option is requested (either to send the job to a real backend, or to model a local Aer simulator on a real processor) and no credentials have been saved via the Qiskit API, the program offers to assist in storing them. A "No" response exits gracefully.
+If the user responds yes, it will then prompt for the necessary information and attempt to use the QiskitRuntime.save_account() function for either an IBM Quantum or IBM Cloud account as documented in the instructions at https://docs.quantum.ibm.com/guides/setup-channel. 
+If that fails, or the service still can't be instantiated with the stored credentials, the program exits with a link to the above account authentication page.
 
 
 ## August 2024 update to April 2024 (Sixth) Release For Qiskit v1.x

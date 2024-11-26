@@ -270,7 +270,9 @@ if (len(sys.argv)>1):
         if len(bparmstr)>0 :
             try: selector=int(bparmstr)
             except: selector=0
-            if (selector == 2 or "real" in bparmstr):  parmlist=parmlist + ["backend:least"]
+            if (selector == 2 or "real" in bparmstr):  
+                parmlist=parmlist + ["-b:least"]
+                UseLocal = False
             else:
                 if qubits_needed <= 5:
                     tempstr=("\nWhat kind of local simulator do you want to run?\n"
@@ -284,8 +286,8 @@ if (len(sys.argv)>1):
                     if len(bparmstr)>0:
                         try: selector=int(bparmstr)
                         except: selector=0
-                        if   (selector == 3 or "real" in bparmstr)   :   parmlist = parmlist + ["-b:aernoise"]
-                        elif (selector == 2 or "aer" in bparmstr)    :   parmlist = parmlist + ["b:aer"]
+                        if   (selector == 3 or "real" in bparmstr)   :  parmlist = parmlist + ["-b:aermodel"]
+                        elif (selector == 2 or "aer" in bparmstr)    :  parmlist = parmlist + ["-b:aer"]
                     else:                                               parmlist = parmlist + ["-local"]
                 else: # more than 5 qubits
                     tempstr=("\nWhat kind of local simulator do you want to run?\n"
@@ -298,8 +300,8 @@ if (len(sys.argv)>1):
                     if len(bparmstr)>0:
                         try: selector=int(bparmstr)
                         except: selector=0
-                        if (selector == 2  or "real" in bparmstr)     :   parmlist = parmlist + ["-b:aernoise"]
-                    else:                                                   parmlist = parmlist + ["b:aer"]
+                        if (selector == 2  or "real" in bparmstr)     : parmlist = parmlist + ["-b:aernoise"]
+                    else:                                               parmlist = parmlist + ["-b:aer"]
                     
         parms = parmlist    
     else: parms = parmlist
@@ -856,10 +858,75 @@ def StartQuantumService():
                     print("Error creating runtime service")
                     print(e)
                     print("This usually means your IBM Quantum account was not found, or your token has expired.")
-                    print ("Please follow the instructions at ")
-                    print("     https://docs.quantum.ibm.com/guides/setup-channel#set-up-to-use-ibm-quantum-platform")
-                    print ("to store your account credentials")
-                    quit()
+                    savetoken=input("Would you like to store your IBM account credentials on this machine? Y/N\n (N)>")
+                    
+                    # If answer is yes, gather information:
+                    if len(savetoken)>0 and ("y" in savetoken or "Y" in savetoken):
+                        # Account on IBM Quantum or IBM Cloud?
+                        savetoken=input("Is your account on 1) IBM Quantum or 2) IBM Cloud?\n (IBM Quantum)")
+                        if len(savetoken)>0 and ( "2" in savetoken or "loud" in savetoken):
+                            qchannel='ibm_cloud'
+                            tokenlist=('You will need your account,\n'
+                                        'the API Key from https://cloud.ibm.com/iam/apikeys,\n'
+                                        'and the Cloud Resource Name (CRN) from https://cloud.ibm.com/quantum/instances')
+                        else:
+                            qchannel = 'ibm_quantum'
+                            tokenlist=('You will need your IBM Quantum Token from https://quantum.ibm.com/account')
+                        print("Setting up ",qchannel,":\n",tokenlist)
+                        # Gather and save info for ibm_quantum channel account
+                        if (qchannel=='ibm_quantum'):
+                            savetoken = input("Enter/Paste your IBM Quantum Token:\n")
+                            if len(savetoken)>0:
+                                QiskitRuntimeService.save_account(
+                                                channel=qchannel,
+                                                token=savetoken,
+                                                set_as_default=True,
+                                                overwrite=True,
+                                            )
+                            else: #data missing, exit gracefully.
+                                print ("No token entered. Please follow the instructions at ")
+                                print("     https://docs.quantum.ibm.com/guides/setup-channel#set-up-to-use-ibm-quantum-platform")
+                                print ("to store your account credentials")
+                                quit()
+                        # Gather and safe info for ibm_cloud channel account
+                        else:  # IBM CLOUD   
+                            cloudID   = input("Enter/Paste your IBM Cloud account:\n")
+                            savetoken = input("Enter/Paste your IBM Cloud API Key:'n")
+                            cloudCRN  = input("Enter/Paste the CRN for your Quantum service instance: \n")
+                            if len(cloudID)>0 and len(savetoken)>0 and len(cloudCRN)>0 : # can only proceed if we have all three
+                                QiskitRuntimeService.save_account(
+                                                channel=qchannel,
+                                                token=savetoken,
+                                                instance=cloudCRN,
+                                                name=cloudID,
+                                                overwrite=True,
+                                            )
+                            else: #data missing, exit gracefully.
+                                print ("Blank/empty credential entered. Please follow the instructions at ")
+                                print("     https://docs.quantum.ibm.com/guides/setup-channel#set-up-to-use-ibm-quantum-platform")
+                                print ("to store your account credentials")
+                                quit()
+                        # -- OK  -- now we are going to try one more time to establish service
+                        print("trying to create backend connection with newly saved data")
+                        try:
+                            Qservice=QiskitRuntimeService()
+                        except AccountNotFoundError as e:       #OK, it still didn't work, so let's exit with a link.
+                            print("Error creating runtime service with account info you provided:")
+                            print(e)   
+                            print ("Blank/empty credential entered. Please follow the instructions at ")
+                            print("     https://docs.quantum.ibm.com/guides/setup-channel#set-up-to-use-ibm-quantum-platform")
+                            print ("to store your account credentials")
+                            quit()
+                         
+                         # -----   
+                                                        
+                    else:    # THIS IS WHERE WE END UP if user answers No to saving account info -- exit gracefully 
+                        print ("Please follow the instructions at ")
+                        print("     https://docs.quantum.ibm.com/guides/setup-channel#set-up-to-use-ibm-quantum-platform")
+                        print ("to store your account credentials")
+                        quit()
+                
+                #-- If we've made it here we have successfully created our runtimeservice!
                 if "aer" in backendparm:
                     from qiskit_aer import AerSimulator
                     if "model" in backendparm or "nois" in backendparm or AddNoise:
