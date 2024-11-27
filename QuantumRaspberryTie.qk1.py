@@ -826,11 +826,29 @@ def StartQuantumService():
                             " 'aer' will generate a basic Aer Simulator\n"
                             " 'aernois' or 'airmodel' will create a real-system noise modeled Aer simulator.\n")
     elif UseLocal: backendparm = "FakeManilaV2"                        
-    print('IBMQ Provider v',IBMQP_Vers, "backendparm ",backendparm,", UseLocal",UseLocal)
-    if debug: input("Press Enter Key")
+    print('IBMQ Provider v',IBMQP_Vers, "backendparm ",backendparm,", Simple 5-qubit Simulator?",UseLocal)
+    if debug:     input("Press Enter Key to create backend")
+    
+    #A whole bunch of logic to see if we need to connect to a quantum service or just spin up an Aer simulator
+    
     if qubits_needed > 5 and UseLocal: 
-        UseLocal = False
-        backendparm = 'aer'
+        if 'mod' in backendparm or 'nois' in backendparm:
+            UseLocal = False
+            backendparm = 'aer_model'
+        else:   #basic aer simulator does not need to connect to provider
+            UseLocal = True
+            from qiskit_aer import AerSimulator
+            print("creating basic Aer Simulator")
+            Q = AerSimulator()    
+    elif not UseLocal and 'aer' in backendparm:
+        if 'mod' in backendparm or 'nois' in backendparm:
+            UseLocal = False
+            backendparm = 'aer_model'
+        else:   #basic aer simulator does not need to connect to provider
+            UseLocal = True
+            from qiskit_aer import AerSimulator
+            print("creating basic Aer Simulator")
+            Q = AerSimulator()    
             
     if not UseLocal:
             
