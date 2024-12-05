@@ -255,9 +255,10 @@ if (len(sys.argv)>1):
                     try: selector=int(bparmstr)
                     except: selector=0
                     if ("16" in bparmstr or "rows" in bparmstr or selector == 2):   dispmode = "q16"
-                else:                                                                  dispmode = "hex"
+                    else:															dispmode = "hex"
+                else:                                                               dispmode = "hex"
                 
-        else:                                                                          dispmode = "q16"
+        else:                                                                       dispmode = "q16"
         print("Display mode selected: ",dispmode)
         parmlist = parmlist + [dispmode]
         # Third question: what kind of backend to use. This gets more complicated
