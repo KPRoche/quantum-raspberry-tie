@@ -118,6 +118,7 @@ print(IBMQVersion)
 
 #Initialize then check command arguments 
 UseEmulator = False
+UseFaux		= False
 DualDisplay = False
 QWhileThinking = True
 UseTee = False
@@ -340,23 +341,16 @@ def write_svg_file(pixels, label='0000', brighten=1, init=False):
                                 <h3>Latest Display on RPi SenseHat</h3>\r
                                 <object data="pixels.html"  width='400' height='500'/ >\r
                                 </body></html>'''
-        #browser_str = browser_str + '<br> Qubit Pattern: ' + label + '</body></html>'
+    
         html_file.write(browser_str)
         html_file.close()        
        
     svg_file = open (r'./svg/pixels.html',"w")
-    #lbl_file = open (r'./svg/pixels.lbl',"w")
-    #browser_str='''<!DOCTYPE html>\r<html>\r<head>\r
-    #                            <title>SenseHat Display</title>\r
-    #                            <meta http-equiv="refresh" content="1">\r
-    #                            </head>\r<body>\r
-    #                            <h3>Latest Display on RPi SenseHat</h3>'''
+    
     browser_str= svg_pixels(pixels, brighten) + '\r <br/>Qubit Pattern: ' + label + '<br/><br/>\r'
     svg_file.write(browser_str)
     svg_file.close()  
-    #browser_str = 'Qubit Pattern: ' + label + '\r'
-    #lbl_file.write(browser_str)
-    #lbl_file.close()      
+    
 
 #-- scale lets us scale a fraction of 255
 def scale(v):
@@ -426,6 +420,7 @@ def showqubits(pattern='0000000000000000'):
          for p in display[q]:     
             pixels[p]=[255,0,0]
    qubits=pixels
+   #print("Pixel List", pixels)
    qubitpattern=pattern
    hat.set_pixels(pixels)         # turn them all on   <== THIS IS THE STEP THAT WRITES TO THE MAIN 8x8 Hat array
    write_svg_file(pixels, svgpattern, 2.5, False)
@@ -752,6 +747,8 @@ if (len(sys.argv)>1):
     parmlist = sys.argv
 		# Always want to be able to parse the debug flag, so do it right away
     if "-debug" in sys.argv: debug = True   
+    		# Always want to be able to parse the SenseFaux flag, so do it right away
+    if "-faux" in sys.argv: UseFaux = True   
 		#-- -input flag pauses to let user add more parameters in addition to sys.argv()
     if "-input" in sys.argv:
         bparmstr = input("add any additional parameters to the initial program call:\n")
@@ -915,6 +912,7 @@ if (len(sys.argv)>1):
 # if it fails, we'll try loading the emulator 
 # This is also where we can expand the display device options
 SenseHatEMU = False
+hatPresent = False
 if not UseEmulator:
     print ("... importing SenseHat and looking for hardware")
     try:
@@ -924,18 +922,31 @@ if not UseEmulator:
         print ("... problem finding SenseHat")
         UseEmulator = True
         print("       ....trying SenseHat Emulator instead")
+    else:	hatPresent = True
 
 if UseEmulator:
-    print ("....importing SenseHat Emulator")
-    from sense_emu import SenseHat         # class for controlling the SenseHat emulator. API is identical to the real SenseHat class
-    hat = SenseHat() # instantiating hat emulator so we can use it in functions
-    while not SenseHatEMU:
-        try:	#This function will error if the emulator program hasn't started
-            hat.set_imu_config(True,True,True) #initialize the accelerometer simulation
-        except:
-            sleep(1)
-        else:
-            SenseHatEMU = True
+	if not useFaux:
+		hattries = 0
+		print ("....importing SenseHat Emulator")
+		from sense_emu import SenseHat         # class for controlling the SenseHat emulator. API is identical to the real SenseHat class
+		hat = SenseHat() # instantiating hat emulator so we can use it in functions
+		while not SenseHatEMU and hattries < 120:
+			try:	#This function will error if the emulator program hasn't started
+				hat.set_imu_config(True,True,True) #initialize the accelerometer simulation
+			except:
+				sleep(1)
+			else:
+				SenseHatEMU = True
+				hatPresent = True
+			hattries = hattries + 1
+	
+	#useFaux will get you here or failing to launch the sense_emu gui
+	if not SenseHatEMU:
+		print("Attempting to import and instantiate a faux SenseHat")
+		try:
+			from sense_faux import SenseHat  # try importing 
+			hat = SenseHat()
+		except: print("Unable to create SenseHat")
 else:
     if DualDisplay: # if you have a Sensehat but want the emulator running also. 
 		#Note that the svg file is always written, so you can open the ./svg/qubits.html file instead 
