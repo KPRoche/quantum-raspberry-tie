@@ -371,31 +371,32 @@ def resetrainbow(show=False):
 # Set the display size and rotation And turn on the display with an mask logo
 #----------------------------------------------------------------
 def orient():
-    global hat,angle
-    acceleration = hat.get_accelerometer_raw()
-    x = acceleration['x']
-    y = acceleration['y']
-    z = acceleration['z']
-    x=round(x, 0)
-    y=round(y, 0)
-    z=round(z, 0)
-    print("current acceleration: ",x,y,z)
-
-    if y == -1:
-        angle = 180
-    elif y == 1 or (SenseHatEMU and not DualDisplay):
-        angle = 0
-    elif x == -1:
-        angle = 90
-    elif x == 1:
-        angle = 270
-    #else:
-        #angle = 180
-    print("angle selected:",angle)
+	global hat,angle
     
+	if not UseFaux:
+		acceleration = hat.get_accelerometer_raw()
+		x = acceleration['x']
+		y = acceleration['y']
+		z = acceleration['z']
+		x=round(x, 0)
+		y=round(y, 0)
+		z=round(z, 0)
+		print("current acceleration: ",x,y,z)
 
-    hat.set_rotation(angle)
-    if DualDisplay: hat2.set_rotation(0)
+		if y == -1:
+			angle = 180
+		elif y == 1 or (SenseHatEMU and not DualDisplay) or UseFaux:
+			angle = 0
+		elif x == -1:
+			angle = 90
+		elif x == 1:
+			angle = 270
+	else:
+		angle = 0
+	
+	print("angle selected:",angle)
+	hat.set_rotation(angle)
+	if DualDisplay: hat2.set_rotation(0)
 
 
 # -- showqubits maps a bit pattern (a string of up to 16 0s and 1s) onto the current display template
@@ -913,7 +914,16 @@ if (len(sys.argv)>1):
 # This is also where we can expand the display device options
 SenseHatEMU = False
 hatPresent = False
-if not UseEmulator:
+#useFaux will get you here or failing to launch the sense_emu gui
+if UseFaux:
+		print("Attempting to import and instantiate a faux SenseHat")
+		try:
+			from sense_faux import SenseHat  # try importing 
+			hat = SenseHat()
+		except: print("Unable to create SenseHat")
+		else:
+			hatPresent = True
+elif not UseEmulator:
     print ("... importing SenseHat and looking for hardware")
     try:
         from sense_hat import SenseHat
@@ -924,31 +934,21 @@ if not UseEmulator:
         print("       ....trying SenseHat Emulator instead")
     else:	hatPresent = True
 
-if UseEmulator:
-	if not useFaux:
-		hattries = 0
-		print ("....importing SenseHat Emulator")
-		from sense_emu import SenseHat         # class for controlling the SenseHat emulator. API is identical to the real SenseHat class
-		hat = SenseHat() # instantiating hat emulator so we can use it in functions
-		while not SenseHatEMU and hattries < 120:
-			try:	#This function will error if the emulator program hasn't started
-				hat.set_imu_config(True,True,True) #initialize the accelerometer simulation
-			except:
-				sleep(1)
-			else:
-				SenseHatEMU = True
-				hatPresent = True
-			hattries = hattries + 1
-	
-	#useFaux will get you here or failing to launch the sense_emu gui
-	if not SenseHatEMU:
-		print("Attempting to import and instantiate a faux SenseHat")
-		try:
-			from sense_faux import SenseHat  # try importing 
-			hat = SenseHat()
-		except: print("Unable to create SenseHat")
+elif UseEmulator:
+	print ("....importing SenseHat Emulator")
+	from sense_emu import SenseHat         # class for controlling the SenseHat emulator. API is identical to the real SenseHat class
+	hat = SenseHat() # instantiating hat emulator so we can use it in functions
+	while not SenseHatEMU:
+		try:	#This function will error if the emulator program hasn't started
+			hat.set_imu_config(True,True,True) #initialize the accelerometer simulation
+		except:
+			sleep(1)
+		else:
+			SenseHatEMU = True
+			hatPresent = True
+		
 else:
-    if DualDisplay: # if you have a Sensehat but want the emulator running also. 
+    if DualDisplay and not useFaux: # if you have a Sensehat but want the emulator running also. 
 		#Note that the svg file is always written, so you can open the ./svg/qubits.html file instead 
 		#	to see the qubit display instead of using the emulator for a second display
         from sense_emu import SenseHat         # class for controlling the SenseHat
@@ -960,6 +960,7 @@ else:
                 sleep(1)
             else:
                 SenseHatEMU = True
+    else: DualDisplay = False
     
 
 # Initial some more working variables and settings we are going to need 
