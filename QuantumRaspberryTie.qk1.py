@@ -384,13 +384,6 @@ def resetrainbow(show=False):
 
 def display_to_LEDs(pixel_list, LED_array_indices):
     try:
-        print("importing neopixel library...")
-        import board
-        import neopixel_spi as neopixel
-    except Exception as e:
-        print("Error importing neopixel library: ", e)
-
-    try:
         # Neopixel constants
         NUM_PIXELS = 192
         PIXEL_ORDER = neopixel.RGB
@@ -479,7 +472,8 @@ def showqubits(pattern='0000000000000000'):
    qubitpattern=pattern
 
    # Test for LED array
-   display_to_LEDs(pixels, LED_array_indices)
+   if UseNeo:
+    display_to_LEDs(pixels, LED_array_indices)
 
    hat.set_pixels(pixels)         # turn them all on   <== THIS IS THE STEP THAT WRITES TO THE MAIN 8x8 Hat array
    write_svg_file(pixels, svgpattern, 2.5, False)
@@ -941,6 +935,7 @@ if (len(sys.argv)>1):
 				# If new output devices are added this needs to be expanded and showqubits updated to handle it
             if '-e' in parameter: UseEmulator = True       # force use of the SenseHat emulator even if hardware is installed
             if '-dual' in parameter: DualDisplay = True
+            if '-neopixel' in parameter: UseNeo = True  
             if '-select' in parameter: 
 				# SelectBackend is a special interactive prompt that appears for choosing the backend by name at the last moment during its instantiation
                 SelectBackend = True
@@ -990,6 +985,14 @@ if UseEmulator:
             sleep(1)
         else:
             SenseHatEMU = True
+if UseNeo:
+    print("importing neopixel library...")
+    try:
+        import board
+        import neopixel_spi as neopixel
+    except Exception as e:
+        print("Error importing neopixel library: ", e)
+
 else:
     if DualDisplay: # if you have a Sensehat but want the emulator running also. 
 		#Note that the svg file is always written, so you can open the ./svg/qubits.html file instead 
