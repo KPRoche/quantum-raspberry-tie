@@ -286,6 +286,17 @@ qubits = pixels
 
 # scale lets us do a simple color rotation of hues and convert it to RGB in pixels
 
+# LED array indices to map to pixel list
+LED_array_indices = {
+    0: 32, 1: 39, 2: 40, 3: 47, 4: 48, 5: 55, 6: 56, 7: 63,
+    8: 33, 9: 38, 10: 41, 11: 46, 12: 49, 13: 54, 14: 57, 15: 62,
+    16: 34, 17: 37, 18: 42, 19: 45, 20: 50, 21: 53, 22: 58, 23: 61,
+    24: 35, 25: 36, 26: 43, 27: 44, 28: 51, 29: 52, 30: 59, 31: 60,
+    32: 156, 33: 155, 34: 148, 35: 147, 36: 140, 37: 139, 38: 132, 39: 131,
+    40: 157, 41: 154, 42: 149, 43: 146, 44: 141, 45: 138, 46: 133, 47: 130,
+    48: 158, 49: 153, 50: 150, 51: 145, 52: 142, 53: 137, 54: 134, 55: 129,
+    56: 159, 57: 152, 58: 151, 59: 144, 60: 143, 61: 136, 62: 135, 63: 128,
+}
 
 #----------------------------------------------------------------------------
 #       Create a SVG rendition of the pixel array
@@ -371,6 +382,19 @@ def resetrainbow(show=False):
        hat.set_pixels(pixels)
        if DualDisplay: hat2.set_pixels(pixels)
 
+def display_to_LEDs(pixel_list, LED_array_indices):
+    for index, pixel in enumerate(pixel_list):
+        # Get RGB data from pixel list
+        red, green, blue = pixel[0], pixel[1], pixel[2]
+
+        # Get the corresponding index position on the LED array
+        LED_index = LED_array_indices[index]
+
+        # Set the appropriate pixel to the RGB value
+        neopixel_array[LED_index] = (red, green, blue)
+
+    # Display image after all pixels have been set
+    neopixel_array.show()
 
 
 #----------------------------------------------------------------
@@ -427,6 +451,11 @@ def showqubits(pattern='0000000000000000'):
             pixels[p]=[255,0,0]
    qubits=pixels
    qubitpattern=pattern
+
+   # Test for LED array
+   if UseNeo:
+    display_to_LEDs(pixels, LED_array_indices)
+
    hat.set_pixels(pixels)         # turn them all on   <== THIS IS THE STEP THAT WRITES TO THE MAIN 8x8 Hat array
    write_svg_file(pixels, svgpattern, 2.5, False)
    if DualDisplay: hat2.set_pixels(pixels)  #           <== THIS WRITES THE PATTERN TO A SECONDARY 8x8 DISPLAY
@@ -887,6 +916,7 @@ if (len(sys.argv)>1):
 				# If new output devices are added this needs to be expanded and showqubits updated to handle it
             if '-e' in parameter: UseEmulator = True       # force use of the SenseHat emulator even if hardware is installed
             if '-dual' in parameter: DualDisplay = True
+            if '-neopixel' in parameter: UseNeo = True  
             if '-select' in parameter: 
 				# SelectBackend is a special interactive prompt that appears for choosing the backend by name at the last moment during its instantiation
                 SelectBackend = True
@@ -936,6 +966,32 @@ if UseEmulator:
             sleep(1)
         else:
             SenseHatEMU = True
+if UseNeo:
+    print("importing neopixel library...")
+    try:
+        import board
+        import neopixel_spi as neopixel
+    except Exception as e:
+        print("Error importing neopixel library: ", e)
+    try:
+        # Neopixel constants
+        NUM_PIXELS = 192
+        PIXEL_ORDER = neopixel.RGB
+        BRIGHTNESS = 1.0
+
+        # Neopixel initialization
+        spi = board.SPI()
+
+        neopixel_array = neopixel.NeoPixel_SPI(
+            spi,
+            NUM_PIXELS,
+            pixel_order=PIXEL_ORDER,
+            brightness=BRIGHTNESS,
+            auto_write=False,
+        )
+    except Exception as e:
+        print("Error initilizating Neopixel board: ", e)
+
 else:
     if DualDisplay: # if you have a Sensehat but want the emulator running also. 
 		#Note that the svg file is always written, so you can open the ./svg/qubits.html file instead 
