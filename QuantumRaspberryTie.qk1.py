@@ -391,10 +391,10 @@ def display_to_LEDs(pixel_list, LED_array_indices):
         LED_index = LED_array_indices[index]
 
         # Set the appropriate pixel to the RGB value
-        pixels[LED_index] = (red, green, blue)
+        neopixel_array[LED_index] = (red, green, blue)
 
     # Display image after all pixels have been set
-    pixels.show()
+    neopixel_array.show()
 
 
 #----------------------------------------------------------------
@@ -982,7 +982,7 @@ if UseNeo:
         # Neopixel initialization
         spi = board.SPI()
 
-        pixels = neopixel.NeoPixel_SPI(
+        neopixel_array = neopixel.NeoPixel_SPI(
             spi,
             NUM_PIXELS,
             pixel_order=PIXEL_ORDER,
