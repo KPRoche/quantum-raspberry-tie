@@ -383,25 +383,6 @@ def resetrainbow(show=False):
        if DualDisplay: hat2.set_pixels(pixels)
 
 def display_to_LEDs(pixel_list, LED_array_indices):
-    try:
-        # Neopixel constants
-        NUM_PIXELS = 192
-        PIXEL_ORDER = neopixel.RGB
-        BRIGHTNESS = 1.0
-
-        # Neopixel initialization
-        spi = board.SPI()
-
-        pixels = neopixel.NeoPixel_SPI(
-            spi,
-            NUM_PIXELS,
-            pixel_order=PIXEL_ORDER,
-            brightness=BRIGHTNESS,
-            auto_write=False,
-        )
-    except Exception as e:
-        print("Error initilizating Neopixel board: ", e)
-
     for index, pixel in enumerate(pixel_list):
         # Get RGB data from pixel list
         red, green, blue = pixel[0], pixel[1], pixel[2]
@@ -992,6 +973,24 @@ if UseNeo:
         import neopixel_spi as neopixel
     except Exception as e:
         print("Error importing neopixel library: ", e)
+    try:
+        # Neopixel constants
+        NUM_PIXELS = 192
+        PIXEL_ORDER = neopixel.RGB
+        BRIGHTNESS = 1.0
+
+        # Neopixel initialization
+        spi = board.SPI()
+
+        pixels = neopixel.NeoPixel_SPI(
+            spi,
+            NUM_PIXELS,
+            pixel_order=PIXEL_ORDER,
+            brightness=BRIGHTNESS,
+            auto_write=False,
+        )
+    except Exception as e:
+        print("Error initilizating Neopixel board: ", e)
 
 else:
     if DualDisplay: # if you have a Sensehat but want the emulator running also. 
