@@ -2,6 +2,12 @@
 #     QuantumRaspberryTie.qk1_local
 #       by KPRoche (Kevin P. Roche) (c) 2017,2018,2019,2020,2021,2022.2024
 #
+#
+#   =============== January 2025 Updates ================================================
+#
+#   Adding support to display results on a NeoPixel array, either the tiled 8x24 array of the Rasqberry Two
+#       or a single BTF 8x32 array
+#
 # ---------------------  November 2024 Update
 #      
 #     Interactive dialog prompt "-int" added to set up parameters
@@ -118,13 +124,14 @@ print(IBMQVersion)
 
 #Initialize then check command arguments 
 UseEmulator = False
-UseFaux		= False
 DualDisplay = False
 QWhileThinking = True
 UseTee = False
 UseHex = False
 UseQ16 = False
 UseLocal = True
+UseNeo = True       #enable display via neopixel array
+NeoTiled = True     # Use the tiled Rasqberry LED pixel order. Setting False will use a single 8x32 array
 backendparm = '[localsim]'
 SelectBackend = False #for interactive selection of backend
 fake_name = "FakeManilaV2"
@@ -287,6 +294,29 @@ qubits = pixels
 
 # scale lets us do a simple color rotation of hues and convert it to RGB in pixels
 
+# LED array indices to map to pixel list
+RQ2_array_indices = {
+    0: 32, 1: 39, 2: 40, 3: 47, 4: 48, 5: 55, 6: 56, 7: 63,
+    8: 33, 9: 38, 10: 41, 11: 46, 12: 49, 13: 54, 14: 57, 15: 62,
+    16: 34, 17: 37, 18: 42, 19: 45, 20: 50, 21: 53, 22: 58, 23: 61,
+    24: 35, 25: 36, 26: 43, 27: 44, 28: 51, 29: 52, 30: 59, 31: 60,
+    32: 156, 33: 155, 34: 148, 35: 147, 36: 140, 37: 139, 38: 132, 39: 131,
+    40: 157, 41: 154, 42: 149, 43: 146, 44: 141, 45: 138, 46: 133, 47: 130,
+    48: 158, 49: 153, 50: 150, 51: 145, 52: 142, 53: 137, 54: 134, 55: 129,
+    56: 159, 57: 152, 58: 151, 59: 144, 60: 143, 61: 136, 62: 135, 63: 128,
+}
+
+# LED array indices for 8x32 single array
+LED8x32_indices = {
+    0: 32, 1: 39, 2: 40, 3: 47, 4: 48, 5: 55, 6: 56, 7: 63,
+    8: 33, 9: 38, 10: 41, 11: 46, 12: 49, 13: 54, 14: 57, 15: 62,
+    16: 34, 17: 37, 18: 42, 19: 45, 20: 50, 21: 53, 22: 58, 23: 61,
+    24: 35, 25: 36, 26: 43, 27: 44, 28: 51, 29: 52, 30: 59, 31: 60,
+    32: 156, 33: 155, 34: 148, 35: 147, 36: 140, 37: 139, 38: 132, 39: 131,
+    40: 157, 41: 154, 42: 149, 43: 146, 44: 141, 45: 138, 46: 133, 47: 130,
+    48: 158, 49: 153, 50: 150, 51: 145, 52: 142, 53: 137, 54: 134, 55: 129,
+    56: 159, 57: 152, 58: 151, 59: 144, 60: 143, 61: 136, 62: 135, 63: 128,
+}
 
 #----------------------------------------------------------------------------
 #       Create a SVG rendition of the pixel array
@@ -341,16 +371,23 @@ def write_svg_file(pixels, label='0000', brighten=1, init=False):
                                 <h3>Latest Display on RPi SenseHat</h3>\r
                                 <object data="pixels.html"  width='400' height='500'/ >\r
                                 </body></html>'''
-    
+        #browser_str = browser_str + '<br> Qubit Pattern: ' + label + '</body></html>'
         html_file.write(browser_str)
         html_file.close()        
        
     svg_file = open (r'./svg/pixels.html',"w")
-    
+    #lbl_file = open (r'./svg/pixels.lbl',"w")
+    #browser_str='''<!DOCTYPE html>\r<html>\r<head>\r
+    #                            <title>SenseHat Display</title>\r
+    #                            <meta http-equiv="refresh" content="1">\r
+    #                            </head>\r<body>\r
+    #                            <h3>Latest Display on RPi SenseHat</h3>'''
     browser_str= svg_pixels(pixels, brighten) + '\r <br/>Qubit Pattern: ' + label + '<br/><br/>\r'
     svg_file.write(browser_str)
     svg_file.close()  
-    
+    #browser_str = 'Qubit Pattern: ' + label + '\r'
+    #lbl_file.write(browser_str)
+    #lbl_file.close()      
 
 #-- scale lets us scale a fraction of 255
 def scale(v):
@@ -365,38 +402,50 @@ def resetrainbow(show=False):
        hat.set_pixels(pixels)
        if DualDisplay: hat2.set_pixels(pixels)
 
+def display_to_LEDs(pixel_list, LED_array_indices):
+    for index, pixel in enumerate(pixel_list):
+        # Get RGB data from pixel list
+        red, green, blue = pixel[0], pixel[1], pixel[2]
+
+        # Get the corresponding index position on the LED array
+        LED_index = LED_array_indices[index]
+
+        # Set the appropriate pixel to the RGB value
+        neopixel_array[LED_index] = (red, green, blue)
+
+    # Display image after all pixels have been set
+    neopixel_array.show()
 
 
 #----------------------------------------------------------------
 # Set the display size and rotation And turn on the display with an mask logo
 #----------------------------------------------------------------
 def orient():
-	global hat,angle
-    
-	if not UseFaux:
-		acceleration = hat.get_accelerometer_raw()
-		x = acceleration['x']
-		y = acceleration['y']
-		z = acceleration['z']
-		x=round(x, 0)
-		y=round(y, 0)
-		z=round(z, 0)
-		print("current acceleration: ",x,y,z)
+    global hat,angle
+    acceleration = hat.get_accelerometer_raw()
+    x = acceleration['x']
+    y = acceleration['y']
+    z = acceleration['z']
+    x=round(x, 0)
+    y=round(y, 0)
+    z=round(z, 0)
+    print("current acceleration: ",x,y,z)
 
-		if y == -1:
-			angle = 180
-		elif y == 1 or (SenseHatEMU and not DualDisplay) or UseFaux:
-			angle = 0
-		elif x == -1:
-			angle = 90
-		elif x == 1:
-			angle = 270
-	else:
-		angle = 0
-	
-	print("angle selected:",angle)
-	hat.set_rotation(angle)
-	if DualDisplay: hat2.set_rotation(0)
+    if y == -1:
+        angle = 180
+    elif y == 1 or (SenseHatEMU and not DualDisplay):
+        angle = 0
+    elif x == -1:
+        angle = 90
+    elif x == 1:
+        angle = 270
+    #else:
+        #angle = 180
+    print("angle selected:",angle)
+    
+
+    hat.set_rotation(angle)
+    if DualDisplay: hat2.set_rotation(0)
 
 
 # -- showqubits maps a bit pattern (a string of up to 16 0s and 1s) onto the current display template
@@ -421,8 +470,12 @@ def showqubits(pattern='0000000000000000'):
          for p in display[q]:     
             pixels[p]=[255,0,0]
    qubits=pixels
-   #print("Pixel List", pixels)
    qubitpattern=pattern
+
+   # Test for LED array
+   if UseNeo:
+    display_to_LEDs(pixels, LED_array_indices)
+
    hat.set_pixels(pixels)         # turn them all on   <== THIS IS THE STEP THAT WRITES TO THE MAIN 8x8 Hat array
    write_svg_file(pixels, svgpattern, 2.5, False)
    if DualDisplay: hat2.set_pixels(pixels)  #           <== THIS WRITES THE PATTERN TO A SECONDARY 8x8 DISPLAY
@@ -472,9 +525,11 @@ def blinky(time=20,experimentID=''):
       if not showlogo:
           hat.set_pixels(pixels)
           if DualDisplay: hat2.set_pixels(pixels)
+          if UseNeo: display_to_LEDs(pixels, LED_array_indices)
       else:
           hat.set_pixels(QKLogo)
-          if DualDisplay: hat2.set_pixels(QArcs)
+          if DualDisplay: hat2.set_pixels(QKLogo)
+          if UseNeo: display_to_LEDs(QKLogo, LED_array_indices)
       sleep(0.002)
       count+=1
       for event in hat.stick.get_events():
@@ -748,8 +803,6 @@ if (len(sys.argv)>1):
     parmlist = sys.argv
 		# Always want to be able to parse the debug flag, so do it right away
     if "-debug" in sys.argv: debug = True   
-    		# Always want to be able to parse the SenseFaux flag, so do it right away
-    if "-faux" in sys.argv: UseFaux = True   
 		#-- -input flag pauses to let user add more parameters in addition to sys.argv()
     if "-input" in sys.argv:
         bparmstr = input("add any additional parameters to the initial program call:\n")
@@ -885,6 +938,8 @@ if (len(sys.argv)>1):
 				# If new output devices are added this needs to be expanded and showqubits updated to handle it
             if '-e' in parameter: UseEmulator = True       # force use of the SenseHat emulator even if hardware is installed
             if '-dual' in parameter: DualDisplay = True
+            if '-neopixel' in parameter: UseNeo = True  
+            if 'notile' in parameter: NeoTiled = False
             if '-select' in parameter: 
 				# SelectBackend is a special interactive prompt that appears for choosing the backend by name at the last moment during its instantiation
                 SelectBackend = True
@@ -913,17 +968,7 @@ if (len(sys.argv)>1):
 # if it fails, we'll try loading the emulator 
 # This is also where we can expand the display device options
 SenseHatEMU = False
-hatPresent = False
-#useFaux will get you here or failing to launch the sense_emu gui
-if UseFaux:
-		print("Attempting to import and instantiate a faux SenseHat")
-		try:
-			from sense_faux import SenseHat  # try importing 
-			hat = SenseHat()
-		except: print("Unable to create SenseHat")
-		else:
-			hatPresent = True
-elif not UseEmulator:
+if not UseEmulator:
     print ("... importing SenseHat and looking for hardware")
     try:
         from sense_hat import SenseHat
@@ -932,23 +977,46 @@ elif not UseEmulator:
         print ("... problem finding SenseHat")
         UseEmulator = True
         print("       ....trying SenseHat Emulator instead")
-    else:	hatPresent = True
 
-elif UseEmulator:
-	print ("....importing SenseHat Emulator")
-	from sense_emu import SenseHat         # class for controlling the SenseHat emulator. API is identical to the real SenseHat class
-	hat = SenseHat() # instantiating hat emulator so we can use it in functions
-	while not SenseHatEMU:
-		try:	#This function will error if the emulator program hasn't started
-			hat.set_imu_config(True,True,True) #initialize the accelerometer simulation
-		except:
-			sleep(1)
-		else:
-			SenseHatEMU = True
-			hatPresent = True
-		
+if UseEmulator:
+    print ("....importing SenseHat Emulator")
+    from sense_emu import SenseHat         # class for controlling the SenseHat emulator. API is identical to the real SenseHat class
+    hat = SenseHat() # instantiating hat emulator so we can use it in functions
+    while not SenseHatEMU:
+        try:	#This function will error if the emulator program hasn't started
+            hat.set_imu_config(True,True,True) #initialize the accelerometer simulation
+        except:
+            sleep(1)
+        else:
+            SenseHatEMU = True
+if UseNeo:
+    print("importing neopixel library...")
+    try:
+        import board
+        import neopixel_spi as neopixel
+    except Exception as e:
+        print("Error importing neopixel library: ", e)
+    try:
+        # Neopixel constants
+        NUM_PIXELS = 192
+        PIXEL_ORDER = neopixel.GRB
+        BRIGHTNESS = 1.0
+
+        # Neopixel initialization
+        spi = board.SPI()
+
+        neopixel_array = neopixel.NeoPixel_SPI(
+            spi,
+            NUM_PIXELS,
+            pixel_order=PIXEL_ORDER,
+            brightness=BRIGHTNESS,
+            auto_write=False,
+        )
+    except Exception as e:
+        print("Error initilizating Neopixel board: ", e)
+
 else:
-    if DualDisplay and not useFaux: # if you have a Sensehat but want the emulator running also. 
+    if DualDisplay: # if you have a Sensehat but want the emulator running also. 
 		#Note that the svg file is always written, so you can open the ./svg/qubits.html file instead 
 		#	to see the qubit display instead of using the emulator for a second display
         from sense_emu import SenseHat         # class for controlling the SenseHat
@@ -960,8 +1028,8 @@ else:
                 sleep(1)
             else:
                 SenseHatEMU = True
-    else: DualDisplay = False
-    
+if NeoTiled:    LED_array_indices = RQ2_array_indices
+else:           LED_array_indices = LED8x32_indices
 
 # Initial some more working variables and settings we are going to need 
 
@@ -1176,7 +1244,7 @@ while Looping:
                             print(backend,' Job cancelled at backend. Restarting.')    
                    
    goAgain=False                    # wait to do it again
-   if Looping: print('Waiting ',interval,'s before next run...')
+   if Looping: print('Iteration ',runcounter,' complete; Waiting ',interval,'s before next run...')
    
    myTimer=process_time()
    while not goAgain:
