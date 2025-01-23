@@ -115,6 +115,10 @@ print ("    .....Aer for building local simulators")#importing Aer to use local 
 from qiskit_aer import Aer
 print("       ....warnings")
 import warnings
+print("       ....numpy as np for building pixel maps ")
+import numpy as np
+
+
 
 #AccountException=accounts.exception(AccountNotFoundError)
 IBMQVersion = qiskit.__version__
@@ -277,6 +281,7 @@ Arrow = [
 # setting up the 8x8=64 pixel variables for color shifts
 # This is a basic "rainbow wash" across the 8x8 set
 
+
 hues = [
     0.00, 0.00, 0.06, 0.13, 0.20, 0.27, 0.34, 0.41,
     0.00, 0.06, 0.13, 0.21, 0.28, 0.35, 0.42, 0.49,
@@ -317,6 +322,37 @@ LED8x32_indices = {
     48: 158, 49: 153, 50: 150, 51: 145, 52: 142, 53: 137, 54: 134, 55: 129,
     56: 159, 57: 152, 58: 151, 59: 144, 60: 143, 61: 136, 62: 135, 63: 128,
 }
+
+# Generate a pixel indices map for a DTF LED array, with a column offset
+
+def create_matrix_map(n, offset=0):
+    # Create an n x n array from 0 - (n^2)-1
+    if offset:
+        temp_matrix = np.arange((offset * n), (n**2) + (offset * n)).reshape(n, n)
+    else:
+        temp_matrix = np.arange(0, (n**2)).reshape(n, n)
+
+    # Iterate through each row. If it's odd, reverse it
+    for index, col in enumerate(temp_matrix):
+        if offset:
+            if (index + offset) % 2 != 0:
+                temp_matrix[index] = col[::-1]
+        else:
+            if index % 2 != 0:
+                temp_matrix[index] = col[::-1]
+
+    # Transpose the matrix, then convert to 1-D array
+    matrix_map = temp_matrix.T
+
+    matrix_map = matrix_map.flatten()
+
+    return matrix_map
+    return matrix_map
+
+
+matrix_map = create_matrix_map(8, 1)
+matrix_map2 = create_matrix_map(8, 12)
+
 
 #----------------------------------------------------------------------------
 #       Create a SVG rendition of the pixel array
@@ -475,6 +511,7 @@ def showqubits(pattern='0000000000000000'):
    # Test for LED array
    if UseNeo:
     display_to_LEDs(pixels, LED_array_indices)
+    if not NeoTiled: display_to_LEDs(pixels, matrix_map2)
 
    hat.set_pixels(pixels)         # turn them all on   <== THIS IS THE STEP THAT WRITES TO THE MAIN 8x8 Hat array
    write_svg_file(pixels, svgpattern, 2.5, False)
@@ -525,11 +562,15 @@ def blinky(time=20,experimentID=''):
       if not showlogo:
           hat.set_pixels(pixels)
           if DualDisplay: hat2.set_pixels(pixels)
-          if UseNeo: display_to_LEDs(pixels, LED_array_indices)
+          if UseNeo: 
+            display_to_LEDs(pixels, LED_array_indices)
+            if not NeoTiled: display_to_LEDs(pixels, matrix_map2)
       else:
           hat.set_pixels(QKLogo)
           if DualDisplay: hat2.set_pixels(QKLogo)
-          if UseNeo: display_to_LEDs(QKLogo, LED_array_indices)
+          if UseNeo: 
+            display_to_LEDs(QKLogo, LED_array_indices)
+            if not NeoTiled: display_to_LEDs(pixels, matrix_map2)
       sleep(0.002)
       count+=1
       for event in hat.stick.get_events():
@@ -1029,7 +1070,8 @@ else:
             else:
                 SenseHatEMU = True
 if NeoTiled:    LED_array_indices = RQ2_array_indices
-else:           LED_array_indices = LED8x32_indices
+else:           LED_array_indices = matrix_map
+
 
 # Initial some more working variables and settings we are going to need 
 
