@@ -461,7 +461,7 @@ def display_to_LEDs(pixel_list, LED_array_indices):
 # Set the display size and rotation And turn on the display with an mask logo
 #----------------------------------------------------------------
 def orient():
-    global hat,angle
+    global hat,angle, DualDisplay
     if not NoHat:
         acceleration = hat.get_accelerometer_raw()
         x = acceleration['x']
@@ -488,7 +488,7 @@ def orient():
     
 
     if not NoHat: hat.set_rotation(angle)
-    if not NoHat: DualDisplay: hat2.set_rotation(0)
+    if not NoHat and DualDisplay: hat2.set_rotation(0)
 
 
 # -- showqubits maps a bit pattern (a string of up to 16 0s and 1s) onto the current display template
@@ -1118,7 +1118,8 @@ showlogo=False
 
 # Now call the orient function and show an arrow
 
-orient()
+if not NoHat and not SenseHatEMU: orient()
+
 display=ibm_qx16    
 if not NoHat: hat.set_pixels(Arrow)
 if UseNeo: 
