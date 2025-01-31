@@ -127,8 +127,10 @@ print(IBMQVersion)
 # --------------------------- Globals used in setting up configuration and running
 
 #Initialize then check command arguments 
+NoHat   =   False
 UseEmulator = False
 DualDisplay = False
+DualNEO = True
 QWhileThinking = True
 UseTee = False
 UseHex = False
@@ -350,8 +352,9 @@ def create_matrix_map(n, offset=0):
     return matrix_map
 
 
-matrix_map = create_matrix_map(8, 1)
-matrix_map2 = create_matrix_map(8, 12)
+if DualNEO: matrix_map = create_matrix_map(8, 5)
+else:       matrix_map = create_matrix_map(8,8)
+matrix_map2 = create_matrix_map(8, 16)
 
 
 #----------------------------------------------------------------------------
@@ -435,8 +438,8 @@ def resetrainbow(show=False):
    pixels = [hsv_to_rgb(h, 1.0, 1.0) for h in hues]
    pixels = [(scale(r), scale(g), scale(b)) for r, g, b in pixels]
    if (show):
-       hat.set_pixels(pixels)
-       if DualDisplay: hat2.set_pixels(pixels)
+       if not NoHat: hat.set_pixels(pixels)
+       if DualDisplay and not NoHat: hat2.set_pixels(pixels)
 
 def display_to_LEDs(pixel_list, LED_array_indices):
     for index, pixel in enumerate(pixel_list):
@@ -450,6 +453,7 @@ def display_to_LEDs(pixel_list, LED_array_indices):
         neopixel_array[LED_index] = (red, green, blue)
 
     # Display image after all pixels have been set
+    
     neopixel_array.show()
 
 
@@ -458,30 +462,33 @@ def display_to_LEDs(pixel_list, LED_array_indices):
 #----------------------------------------------------------------
 def orient():
     global hat,angle
-    acceleration = hat.get_accelerometer_raw()
-    x = acceleration['x']
-    y = acceleration['y']
-    z = acceleration['z']
-    x=round(x, 0)
-    y=round(y, 0)
-    z=round(z, 0)
-    print("current acceleration: ",x,y,z)
+    if not NoHat:
+        acceleration = hat.get_accelerometer_raw()
+        x = acceleration['x']
+        y = acceleration['y']
+        z = acceleration['z']
+        x=round(x, 0)
+        y=round(y, 0)
+        z=round(z, 0)
+        print("current acceleration: ",x,y,z)
 
-    if y == -1:
-        angle = 180
-    elif y == 1 or (SenseHatEMU and not DualDisplay):
+        if y == -1:
+            angle = 180
+        elif y == 1 or (SenseHatEMU and not DualDisplay):
+            angle = 0
+        elif x == -1:
+            angle = 90
+        elif x == 1:
+            angle = 270
+        #else:
+            #angle = 180
+    else:
         angle = 0
-    elif x == -1:
-        angle = 90
-    elif x == 1:
-        angle = 270
-    #else:
-        #angle = 180
     print("angle selected:",angle)
     
 
-    hat.set_rotation(angle)
-    if DualDisplay: hat2.set_rotation(0)
+    if not NoHat: hat.set_rotation(angle)
+    if not NoHat: DualDisplay: hat2.set_rotation(0)
 
 
 # -- showqubits maps a bit pattern (a string of up to 16 0s and 1s) onto the current display template
@@ -510,12 +517,14 @@ def showqubits(pattern='0000000000000000'):
 
    # Test for LED array
    if UseNeo:
+    #neopixel_array.clear()
+    #neopixel_array.show()   
     display_to_LEDs(pixels, LED_array_indices)
-    if not NeoTiled: display_to_LEDs(pixels, matrix_map2)
+    if DualNEO and not NeoTiled: display_to_LEDs(pixels, matrix_map2)
 
-   hat.set_pixels(pixels)         # turn them all on   <== THIS IS THE STEP THAT WRITES TO THE MAIN 8x8 Hat array
+   if not NoHat: hat.set_pixels(pixels)         # turn them all on   <== THIS IS THE STEP THAT WRITES TO THE MAIN 8x8 Hat array
    write_svg_file(pixels, svgpattern, 2.5, False)
-   if DualDisplay: hat2.set_pixels(pixels)  #           <== THIS WRITES THE PATTERN TO A SECONDARY 8x8 DISPLAY
+   if DualDisplay and not NoHat: hat2.set_pixels(pixels)  #           <== THIS WRITES THE PATTERN TO A SECONDARY 8x8 DISPLAY
    #write_svg_file(qubits,2.5)
    
 #--------------------------------------------------
@@ -560,24 +569,25 @@ def blinky(time=20,experimentID=''):
             GoNow=True
     # Update the display
       if not showlogo:
-          hat.set_pixels(pixels)
-          if DualDisplay: hat2.set_pixels(pixels)
+          if not NoHat: hat.set_pixels(pixels)
+          if DualDisplay and not NoHat: hat2.set_pixels(pixels)
           if UseNeo: 
             display_to_LEDs(pixels, LED_array_indices)
-            if not NeoTiled: display_to_LEDs(pixels, matrix_map2)
+            if DualNEO and not NeoTiled: display_to_LEDs(pixels, matrix_map2)
       else:
-          hat.set_pixels(QKLogo)
-          if DualDisplay: hat2.set_pixels(QKLogo)
+          if not NoHat: hat.set_pixels(QKLogo)
+          if DualDisplay and not NoHat: hat2.set_pixels(QKLogo)
           if UseNeo: 
             display_to_LEDs(QKLogo, LED_array_indices)
-            if not NeoTiled: display_to_LEDs(pixels, matrix_map2)
+            if DualNEO and not NeoTiled: display_to_LEDs(pixels, matrix_map2)
       sleep(0.002)
       count+=1
-      for event in hat.stick.get_events():
-         if event.action == 'pressed':
-            goNow=True
-         if event.action == 'held' and event.direction =='middle':
-            shutdown=True 
+      if not NoHat:
+          for event in hat.stick.get_events():
+             if event.action == 'pressed':
+                goNow=True
+             if event.action == 'held' and event.direction =='middle':
+                shutdown=True 
 
 #------------------------------------------------
 #  now that the light pattern functions are defined,
@@ -597,11 +607,11 @@ class glow():
       #thinking=False
       while self._running:
          if shutdown:
-            hat.set_rotation(angle)
-            hat.set_pixels(off)
+            if not NoHat: hat.set_rotation(angle)
+            if not NoHat: hat.set_pixels(off)
             sleep(1)
-            hat.clear()
-            if DualDisplay: hat2.clear()
+            if not NoHat: hat.clear()
+            if DualDisplay and not NoHat: hat2.clear()
             path = 'sudo shutdown -P now '
             os.system (path)
          else:
@@ -844,6 +854,8 @@ if (len(sys.argv)>1):
     parmlist = sys.argv
 		# Always want to be able to parse the debug flag, so do it right away
     if "-debug" in sys.argv: debug = True   
+        # similarly want to be able to turn off neopixel tiling regardless
+    if 'notile' in sys.argv: NeoTiled = False
 		#-- -input flag pauses to let user add more parameters in addition to sys.argv()
     if "-input" in sys.argv:
         bparmstr = input("add any additional parameters to the initial program call:\n")
@@ -1009,6 +1021,7 @@ if (len(sys.argv)>1):
 # if it fails, we'll try loading the emulator 
 # This is also where we can expand the display device options
 SenseHatEMU = False
+hatcounter = 0
 if not UseEmulator:
     print ("... importing SenseHat and looking for hardware")
     try:
@@ -1026,10 +1039,14 @@ if UseEmulator:
     while not SenseHatEMU:
         try:	#This function will error if the emulator program hasn't started
             hat.set_imu_config(True,True,True) #initialize the accelerometer simulation
+            print("waiting for SenseHat emulator to start: iteration ",hatcounter,"/60")
         except:
             sleep(1)
+            hatcounter += 1
         else:
             SenseHatEMU = True
+            if hatcounter >=10: NoHat = True
+            
 if UseNeo:
     print("importing neopixel library...")
     try:
@@ -1039,9 +1056,13 @@ if UseNeo:
         print("Error importing neopixel library: ", e)
     try:
         # Neopixel constants
-        NUM_PIXELS = 192
-        PIXEL_ORDER = neopixel.GRB
-        BRIGHTNESS = 1.0
+        if NeoTiled: 
+            NUM_PIXELS = 192
+            PIXEL_ORDER = neopixel.RGB
+        else: 
+            NUM_PIXELS = 256
+            PIXEL_ORDER = neopixel.GRB
+        BRIGHTNESS = 0.10
 
         # Neopixel initialization
         spi = board.SPI()
@@ -1053,6 +1074,8 @@ if UseNeo:
             brightness=BRIGHTNESS,
             auto_write=False,
         )
+        #neopixel_array.clear()
+        #neopixel_array.show()
     except Exception as e:
         print("Error initilizating Neopixel board: ", e)
 
@@ -1097,8 +1120,12 @@ showlogo=False
 
 orient()
 display=ibm_qx16    
-hat.set_pixels(Arrow)
-if DualDisplay: hat2.set_pixels(Arrow)
+if not NoHat: hat.set_pixels(Arrow)
+if UseNeo: 
+    display_to_LEDs(Arrow, LED_array_indices)
+    if DualNEO: display_to_LEDs(Arrow, matrix_map2)
+
+if DualDisplay and not NoHat: hat2.set_pixels(Arrow)
 
 
 # ------------------------- Step 3:  Find the QASM Input file 
@@ -1290,17 +1317,18 @@ while Looping:
    
    myTimer=process_time()
    while not goAgain:
-      for event in hat.stick.get_events():   
-         if event.action == 'pressed':      #somebody tapped the joystick -- go now
-            goAgain=True
-            blinky(.001)
-            hat.set_pixels(pixels)
-            if DualDisplay: hat2.set_pixels(pixels)
-         if event.action == 'held' and event.direction =='middle':
-            shutdown=True 
-         if event.action == 'held' and event.direction !='middle':
-             Looping = False
-             break
+      if not NoHat:
+          for event in hat.stick.get_events():   
+             if event.action == 'pressed':      #somebody tapped the joystick -- go now
+                goAgain=True
+                blinky(.001)
+                hat.set_pixels(pixels)
+                if DualDisplay: hat2.set_pixels(pixels)
+             if event.action == 'held' and event.direction =='middle':
+                shutdown=True 
+             if event.action == 'held' and event.direction !='middle':
+                 Looping = False
+                 break
       if (process_time()-myTimer>interval):       # 10 seconds elapsed -- go now
             goAgain=True
 
