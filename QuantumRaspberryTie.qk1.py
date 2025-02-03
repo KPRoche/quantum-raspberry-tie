@@ -1034,18 +1034,21 @@ if not UseEmulator:
 
 if UseEmulator:
     print ("....importing SenseHat Emulator")
-    from sense_emu import SenseHat         # class for controlling the SenseHat emulator. API is identical to the real SenseHat class
-    hat = SenseHat() # instantiating hat emulator so we can use it in functions
-    while not SenseHatEMU:
-        try:	#This function will error if the emulator program hasn't started
-            hat.set_imu_config(True,True,True) #initialize the accelerometer simulation
-            print("waiting for SenseHat emulator to start: iteration ",hatcounter,"/60")
-        except:
-            sleep(1)
-            hatcounter += 1
-        else:
-            SenseHatEMU = True
-            if hatcounter >=10: NoHat = True
+    try: 
+        from sense_emu import SenseHat         # class for controlling the SenseHat emulator. API is identical to the real SenseHat class
+        hat = SenseHat() # instantiating hat emulator so we can use it in functions
+        while not SenseHatEMU:
+            try:	#This function will error if the emulator program hasn't started
+                hat.set_imu_config(True,True,True) #initialize the accelerometer simulation
+                print("waiting for SenseHat emulator to start: iteration ",hatcounter,"/60")
+            except:
+                sleep(1)
+                hatcounter += 1
+            else:
+                SenseHatEMU = True
+                if hatcounter >=10: NoHat = True
+    except:
+        NoHat = True
             
 if UseNeo:
     print("importing neopixel library...")
