@@ -1,0 +1,9 @@
+Adafruit_Blinka==8.50.0
+adafruit_circuitpython_neopixel_spi==1.0.10
+numpy==1.24.2
+qiskit==1.2.4
+qiskit_aer==0.15.1
+qiskit_ibm_runtime==0.33.2
+Requests==2.32.3
+sense_emu==1.2.2
+sense_hat==2.6.0

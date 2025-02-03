@@ -2,6 +2,16 @@
 <img src='New Logo Screen.png' width='150' alt='display while waiting for results' style='float:right;'><br/> 
 Your Raspberry Pi running code on the IBM Quantum platform processors or simulators via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat (or SenseHat emulator)!
 
+## January 2025 updates
+
+- The code now supports a NeoPixel array display as used on the Rasqberry Two project, using IO10 on the Raspberry pi.
+
+- It also will handle the absence of both a sensehat and the sensehat emulator, outputting to just the NeoPixel array and the svg/html files
+
+- add the -notile flag to the command line if you are controlling a continuous NeoPixel array (like a BTF 8x64 flexible panel) rather than the 4-piece tiled display of the Rasqberry
+
+- Note that we've observed some flickering/wrong pixels in the NeoPixel display; we've not isolated where in the spawned display loop thread it originates yet.
+
 ## November 2024 updates
 
 ### New Interactive dialog option (_-int_)
