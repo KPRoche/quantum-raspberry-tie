@@ -8,6 +8,12 @@
 #   Adding support to display results on a NeoPixel array, either the tiled 8x24 array of the Rasqberry Two
 #       or a single BTF 8x32 array
 #
+#   New Flags for the input line:
+#       -notile tells the neopixel code to use a continuous neopixel array map rather than the Rasqberry tiled map
+#
+#   New behavior: if neither a SenseHat nor a Sensehat emulator are detected, sets a NoHat flag and skips that code
+#
+#
 # ---------------------  November 2024 Update
 #      
 #     Interactive dialog prompt "-int" added to set up parameters
