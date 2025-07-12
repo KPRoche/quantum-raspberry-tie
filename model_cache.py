@@ -48,8 +48,8 @@ def update_quantum_models(token, instance):
         cache_noise_model(backend_name, file_name)
 
 
-token = ""
-instance = "crn: ::"
+token = input("Enter your token: ")
+instance = input("Enter your CRN: ")
     
 
 update_quantum_models(token, instance)
