@@ -5,15 +5,36 @@ import subprocess
 
 def detect_vnc():
     try:
+        # 1. DISPLAY check � catches most X-based VNC servers (like :1, :2)
         display = os.environ.get("DISPLAY", "")
         if display.startswith(":") and display != ":0":
             return True
 
+        # 2. Process scan � helpful for Xvnc, vncserver-virtual, etc.
         output = subprocess.check_output(["ps", "aux"]).decode()
-        vnc_keywords = ["Xvnc", "vncserver", "vncserver-virtual", "vncagent"]
-        return any(any(k in line for k in vnc_keywords) for line in output.splitlines())
-    except:
-        return False
+        vnc_keywords = ["Xvnc", "vncserver", "vncserver-virtual", "vncagent", "vino-server"]
+        if any(any(k in line for k in vnc_keywords) for line in output.splitlines()):
+            return True
+
+        # 3. RealVNC check: config file or systemd service check
+        realvnc_paths = [
+            "/root/.vnc", "/home/pi/.vnc",
+            "/etc/systemd/system/vncserver-x11-serviced.service",
+            "/lib/systemd/system/vncserver-x11-serviced.service"
+        ]
+        if any(os.path.exists(path) for path in realvnc_paths):
+            return True
+
+        # 4. D-Bus Desktop Session fallback
+        xdg_session = os.environ.get("XDG_SESSION_TYPE", "")
+        if "vnc" in xdg_session.lower():
+            return True
+
+    except Exception:
+        pass
+
+    return False
+
 
 def detect_environment():
     env_info = {
