@@ -1,7 +1,13 @@
 import os
 
 def is_root():
+    """
+    This function checks whether root permissions are initialised.
+    This also serves as a test for the docstring function.
+    """
     return os.geteuid() == 0  # Only works on Unix-like systems
+
+print(is_root.__doc__)
 
 try:
     from sense_emu import SenseHat
