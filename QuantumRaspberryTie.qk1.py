@@ -141,7 +141,7 @@ QWhileThinking = True
 UseTee = False
 UseHex = False
 UseQ16 = False
-UseLocal = True
+UseLocal = False
 UseNeo = True       #enable display via neopixel array
 NeoTiled = True     # Use the tiled Rasqberry LED pixel order. Setting False will use a single 8x32 array
 backendparm = '[localsim]'
@@ -710,13 +710,13 @@ def StartQuantumService():
             from qiskit_aer import AerSimulator
             print("creating basic Aer Simulator")
             Q = AerSimulator()    
-            
+
+#################### START OF NOT LOCAL ####################
     if not UseLocal:
             
         print ('Pinging IBM Quantum API server before start')
         p=ping('https://api.quantum-computing.ibm.com',1,0.5,True)
-        #p=ping('https://auth.quantum-computing.ibm.com/api',1,0.5,True)
-        #p=ping('https://quantum-computing.ibm.com/',1,0.5,True)
+
         try:
             print("requested backend: ",backendparm)
         except:
@@ -730,10 +730,6 @@ def StartQuantumService():
                 try:
                     Qservice=QiskitRuntimeService()
                 except AccountNotFoundError as e:
-                #    print("IBM Quantum account not found. Please follow the instructions at \r'https://docs.quantum.ibm.com/guides/setup-channel#set-up-to-use-ibm-quantum-platform' \r to store your account credentials")
-                # 
-                #    quit()
-                #except Exception as e:
                     print("Error creating runtime service")
                     print(e)
                     print("This usually means your IBM Quantum account was not found, or your token has expired.")
@@ -833,6 +829,9 @@ def StartQuantumService():
                 exit() #this code only works with the new Qiskit>v1.0
         else:
             exit()
+#################### END OF NOT LOCAL ####################
+
+
     else: # THIS IS THE CASE FOR USING LOCAL SIMULATOR
         backend='local aer qasm_simulator'
         print ("Building ",backend, "with requested attributes...")
