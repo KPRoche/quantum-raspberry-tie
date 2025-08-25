@@ -1,8 +1,15 @@
 #----------------------------------------------------------------------
-#     QuantumRaspberryTie.qk1_local
-#       by KPRoche (Kevin P. Roche) (c) 2017,2018,2019,2020,2021,2022.2024
+#     QuantumRaspberryTie.qk2
+#       by KPRoche (Kevin P. Roche) (c) 2017,2018,2019,2020,2021,2022,2024,2025
 #
+#   ============== August 2025 Updates
+#   Updated to use new cloud.ibm.com URLs for quantum APIs
 #
+#   Added specific detection for no raspberry Pi (NOT aarch64) devices to override bad options
+#   
+#   Similarly, if loading libraries for HW for neopixel control failes, will set those flags accordingly
+#
+#   New detection loop for SenseHat emulator GUI using psutil.process_iter() to avoid hang there
 #   =============== January 2025 Updates ================================================
 #
 #   Adding support to display results on a NeoPixel array, either the tiled 8x24 array of the Rasqberry Two
@@ -99,6 +106,10 @@ print("       ....sys")
 import sys                             # used to check for passed filename
 print("       ....os")
 import os                              # used to find script directory
+print("       ....platform")
+import platform                        # used to detect architecture
+print("       ....psutil")
+import psutil                          # used to detect sensehat GUI
 print("       ....requests")
 import requests                        # used for ping
 print("       ....threading")
@@ -133,6 +144,7 @@ print(IBMQVersion)
 # --------------------------- Globals used in setting up configuration and running
 
 #Initialize then check command arguments 
+IsRPi   =   False  # if architecture check <> aarch64/etc, disables raspberry-pi dependent code
 NoHat   =   False
 UseEmulator = False
 UseFaux = False
@@ -468,34 +480,45 @@ def display_to_LEDs(pixel_list, LED_array_indices):
 # Set the display size and rotation And turn on the display with an mask logo
 #----------------------------------------------------------------
 def orient():
-    global hat,angle, DualDisplay
+    global hat,angle, DualDisplay, NoHat
     if not NoHat:
-        acceleration = hat.get_accelerometer_raw()
-        x = acceleration['x']
-        y = acceleration['y']
-        z = acceleration['z']
-        x=round(x, 0)
-        y=round(y, 0)
-        z=round(z, 0)
-        print("current acceleration: ",x,y,z)
+        try:
+            acceleration = hat.get_accelerometer_raw()
+            x = acceleration['x']
+            y = acceleration['y']
+            z = acceleration['z']
+            x=round(x, 0)
+            y=round(y, 0)
+            z=round(z, 0)
+            print("current acceleration: ",x,y,z)
 
-        if y == -1:
-            angle = 180
-        elif y == 1 or (SenseHatEMU and not DualDisplay):
+            if y == -1:
+                angle = 180
+            elif y == 1 or (SenseHatEMU and not DualDisplay):
+                angle = 0
+            elif x == -1:
+                angle = 90
+            elif x == 1:
+                angle = 270
+            #else:
+                #angle = 180
+        except:
             angle = 0
-        elif x == -1:
-            angle = 90
-        elif x == 1:
-            angle = 270
-        #else:
-            #angle = 180
     else:
         angle = 0
     print("angle selected:",angle)
     
 
-    if not NoHat: hat.set_rotation(angle)
-    if not NoHat and DualDisplay: hat2.set_rotation(0)
+    if not NoHat: 
+        try: 
+            hat.set_rotation(angle)
+        except:
+            print("hat not active)")
+    if not NoHat and DualDisplay: 
+        try:
+            hat2.set_rotation(0)
+        except:
+            print("hat2 not active")
 
 
 # -- showqubits maps a bit pattern (a string of up to 16 0s and 1s) onto the current display template
@@ -1020,17 +1043,24 @@ if (len(sys.argv)>1):
                 elif '-nois' in token: fake_name = value
             if debug: input("press Enter to continue")
              
+#-------------------   Step 2: Check the hardware and disable rPi-only options on non-rPi
 
+IsRPi = ("aarch64" in platform.processor())
+if not IsRPi:           # if the hardware is not a raspberry pi, the SenseHat and Neopixels are not available
+    NoHat = True
+    UseEmulator = True
+    DualDisplay = False
+    UseNeo  = False
+    print(platform.processor()," architecture indicates this is not a Raspberry Pi; disabling program modules dependent on pi")
 
-
-#-------------------   Step 2: Set up SenseHat or alternative for display
+#-------------------   Step 3: Set up SenseHat or alternative for display
 
 # Now we are going to try to instantiate the SenseHat as a display device, unless we have asked for the emulator.
 # if it fails, we'll try loading the emulator 
 # This is also where we can expand the display device options
 SenseHatEMU = False
 hatcounter = 0
-if not UseEmulator:
+if not UseEmulator and IsRPi:
     print ("... importing SenseHat and looking for hardware")
     try:
         from sense_hat import SenseHat
@@ -1043,26 +1073,35 @@ if not UseEmulator:
 if UseEmulator:
     print ("....importing SenseHat Emulator")
     try: 
-        if not UseFaux:
+        if not UseFaux:  # NOTE sense_faux is now added to the repository so it doesn't have to be installed as a package
             from sense_emu import SenseHat         # class for controlling the SenseHat emulator. API is identical to the real SenseHat class
         else: 
             from sense_faux import SenseHat         # class for controlling the faux (no GUI) API is identical to the real SenseHat class
         
         hat = SenseHat() # instantiating hat emulator so we can use it in functions
         while not SenseHatEMU:
-            try:	#This function will error if the emulator program hasn't started
-                hat.set_imu_config(True,True,True) #initialize the accelerometer simulation
-                print("waiting for SenseHat emulator to start: iteration ",hatcounter,"/60")
-            except:
+            print("waiting for SenseHat emulator to start: iteration ",hatcounter,"/60")
+            print("checking for SenseHat EMU GUI")
+            if ("sense_emu_gui" in i.name() for i in psutil.process_iter()):
+                print("SenseHat emu GUI found, initializing")
+                try:	#This function will error if the emulator program hasn't started
+                    hat.set_imu_config(True,True,True) #initialize the accelerometer simulation
+                    SenseHatEMU = True
+                except:
+                    print("error initializing SenseHat, instantiating faux")
+                    from sense_faux import SenseHat
+                    hat = SenseHat()
+                    SenseHatEMU = True
+                    UseFaux = True
+            else:
+                print("SenseHat GUI not found... waiting")
                 sleep(1)
                 hatcounter += 1
-            else:
-                SenseHatEMU = True
-                if hatcounter >=10: NoHat = True
+            if hatcounter >=10: NoHat = True
     except:
         NoHat = True
             
-if UseNeo:
+if UseNeo and IsRPi :
     print("importing neopixel library...")
     try:
         import board
@@ -1096,6 +1135,7 @@ if UseNeo:
         print("Error initilizating Neopixel board: ", e)
 
 else:
+    UseNeo = False
     if DualDisplay: # if you have a Sensehat but want the emulator running also. 
 		#Note that the svg file is always written, so you can open the ./svg/qubits.html file instead 
 		#	to see the qubit display instead of using the emulator for a second display
@@ -1108,8 +1148,10 @@ else:
                 sleep(1)
             else:
                 SenseHatEMU = True
-if NeoTiled:    LED_array_indices = RQ2_array_indices
-else:           LED_array_indices = matrix_map
+
+if UseNeo:
+    if NeoTiled:    LED_array_indices = RQ2_array_indices
+    else:           LED_array_indices = matrix_map
 
 
 # Initial some more working variables and settings we are going to need 
