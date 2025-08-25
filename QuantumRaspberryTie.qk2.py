@@ -663,7 +663,7 @@ class glow():
 #           based on pi-ping by Wesley Archer (raspberrycoulis) (c) 2017
 #           https://github.com/raspberrycoulis/Pi-Ping
 #----------------------------------------------------------------------------
-def ping(website='https://quantum-computing.ibm.com/',repeats=1,wait=0.5,verbose=False):
+def ping(website='https://quantum.cloud.ibm.com/',repeats=1,wait=0.5,verbose=False):
   msg = 'ping response'
   for n in range(repeats):
     response = requests.get(website)
@@ -738,7 +738,7 @@ def StartQuantumService():
     if not UseLocal:
             
         print ('Pinging IBM Quantum API server before start')
-        p=ping('https://api.quantum-computing.ibm.com',1,0.5,True)
+        p=ping('https://quantum.cloud.ibm.com',1,0.5,True)
         #p=ping('https://auth.quantum-computing.ibm.com/api',1,0.5,True)
         #p=ping('https://quantum-computing.ibm.com/',1,0.5,True)
         try:
@@ -1045,14 +1045,14 @@ if (len(sys.argv)>1):
              
 #-------------------   Step 2: Check the hardware and disable rPi-only options on non-rPi
 
-IsRPi = ("aarch64" in platform.processor())
+IsRPi = ("aarch64" in platform.processor() or 'aarch64' in platform.machine())
 if not IsRPi:           # if the hardware is not a raspberry pi, the SenseHat and Neopixels are not available
     NoHat = True
     UseEmulator = True
     DualDisplay = False
     UseNeo  = False
-    print(platform.processor()," architecture indicates this is not a Raspberry Pi; disabling program modules dependent on pi")
-
+    print("platform.processor():",platform.processor(),"| platform.machine():",platform.machine()," architecture indicates this is not a Raspberry Pi; disabling program modules dependent on pi")
+    
 #-------------------   Step 3: Set up SenseHat or alternative for display
 
 # Now we are going to try to instantiate the SenseHat as a display device, unless we have asked for the emulator.
