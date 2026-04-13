@@ -133,7 +133,7 @@ from qiskit.providers import JobStatus
 print("     .....simple local emulator (fakeManila)")
 from qiskit_ibm_runtime.fake_provider import FakeManilaV2
 print ("    .....Aer for building local simulators")#importing Aer to use local simulator")
-from qiskit_aer import Aer, qasm_simulator
+from qiskit_aer import Aer
 print("       ....warnings")
 import warnings
 print("       ....numpy as np for building pixel maps ")
@@ -158,7 +158,6 @@ QWhileThinking = True
 UseTee = False
 UseHex = False
 UseQ16 = False
-UseQ32 = False
 UseLocal = True
 UseNeo = True       #enable display via neopixel array
 NeoTiled = True     # Use the tiled Rasqberry LED pixel order. Setting False will use a single 8x32 array
@@ -166,7 +165,6 @@ backendparm = '[localsim]'
 SelectBackend = False #for interactive selection of backend
 fake_name = "FakeManilaV2"
 qubits_needed = 5  #default size for the five-qubit simulation
-num_shots = 50 #default number of shots for jobs
 AddNoise = False
 debug = False
 qasmfileinput='expt.qasm'
@@ -196,16 +194,6 @@ ibm_qx16 = [[63],[54],[61],[52],[59],[50],[57],[48],
             [7],[14],[5],[12],[3],[10],[1],[8]]
             #[[0],[9],[2],[11],[4],[13],[6],[15],
             #[56],[49],[58],[51],[60],[53],[62],[55]]
-            
-ibm_qx32 = [[ 0],   [ 2],   [ 4],   [ 6],
-                [ 9],   [11],   [13],   [15],
-            [16],   [18],   [20],   [22],
-                [25],   [27],   [29],   [31],
-            [32],   [34],   [36],   [38],
-                [41],   [43],   [45],   [47],
-            [48],   [50],   [52],   [54],
-                [57],   [59],   [61],   [63]
-            ]            
 
 # global to spell OFF in a single operation
 X = [255, 255, 255]  # white
@@ -583,7 +571,7 @@ def showqubits(pattern='0000000000000000'):
 #------------------------------------------------------
 
 def blinky(time=20,experimentID=''):
-   global pixels,hues,experiment, Qlogo, showlogo, QArcs, QKLogo, QHex, qubits, qubitpattern, qubits_needed
+   global pixels,hues,experiment, Qlogo, showlogo, QArcs, QKLogo, QHex, qubits, qubitpattern
    if QWhileThinking:
        mask = QKLogo_mask
    else:
@@ -592,7 +580,6 @@ def blinky(time=20,experimentID=''):
    count=0
    GoNow=False
    while ((count*.02<time) and (not GoNow)):
-      #if qubits_needed < 17:  
       # Rotate the hues
       hues = [(h + 0.01) % 1.0 for h in hues]
       # Convert the hues to RGB values
@@ -641,7 +628,7 @@ def blinky(time=20,experimentID=''):
 #    build a class glow so we can launch display control as a thread
 #------------------------------------------------
 class glow():
-   global thinking,hat, maxpattern, shutdown,off,Qlogo, QArcs, Qhex, qubits_needed
+   global thinking,hat, maxpattern, shutdown,off,Qlogo, QArcs, Qhex
 
    def __init__(self):
       self._running = True
@@ -662,7 +649,7 @@ class glow():
             path = 'sudo shutdown -P now '
             os.system (path)
          else:
-           if thinking: # and qubits_needed < 17:
+           if thinking:
               blinky(.1)
            else:
               showqubits(maxpattern)
@@ -741,16 +728,16 @@ def StartQuantumService():
             UseLocal = True
             from qiskit_aer import AerSimulator
             print("creating basic Aer Simulator")
-            Q = AerSimulator(method='matrix_product_state')    
+            Q = AerSimulator()    
     elif not UseLocal and 'aer' in backendparm:
         if 'mod' in backendparm or 'nois' in backendparm:
             UseLocal = False
             backendparm = 'aer_model'
         else:   #basic aer simulator does not need to connect to provider
             UseLocal = True
-            from qiskit_aer import qasm_simulator as AerSimulator
+            from qiskit_aer import AerSimulator
             print("creating basic Aer Simulator")
-            Q = AerSimulator(method='matrix_product_state')    
+            Q = AerSimulator()    
             
     if not UseLocal:
             
@@ -821,14 +808,14 @@ def StartQuantumService():
                 #-- If we've made it here we have successfully created our runtimeservice!
                 if "aer" in backendparm:
                     from qiskit_aer import AerSimulator
-                    if ("model" in backendparm or "nois" in backendparm or AddNoise) and qubits_needed<28:
+                    if "model" in backendparm or "nois" in backendparm or AddNoise:
                         print("getting a real backend connection for aer model")
                         real_backend = Qservice.least_busy(simulator=False)#operational=True, backend("ibm_brisbane")
                         print("creating AerSimulator modeled from ",real_backend.name)
-                        Q = AerSimulator.from_backend(real_backend,n_qubits=qubits_needed)
+                        Q = AerSimulator.from_backend(real_backend)
                     else:
                         print("creating basic Aer Simulator")
-                        Q = AerSimulator(n_qubits=qubits_needed)    
+                        Q = AerSimulator()    
                     UseLocal=True  #now that it's built, mark the backend as local
                 else:
                     try:
@@ -851,7 +838,7 @@ def StartQuantumService():
         print ("Building ",backend, "with requested attributes...")
         if not AddNoise:
             from qiskit_aer import AerSimulator
-            Q = AerSimulator(n_qubits=qubits_needed)  #Aer.get_backend('qasm_simulator')
+            Q = AerSimulator()  #Aer.get_backend('qasm_simulator')
         else:
             Q = FakeManilaV2() 
 #-------------------------------------------------------------------------------
@@ -889,13 +876,9 @@ if (len(sys.argv)>1):
         print("Welcome to the Quantum Raspberry Tie demonstration.\n Select your preferences for this run: \n Hitting enter will select the default.")
     
         # First question: how many qubits?
-        bparmstr = input("\nHow many qubits in the demo: 5, 12, 16 or 32? (default 5)\n>")
+        bparmstr = input("\nHow many qubits in the demo: 5, 12 or 16? (default 5)\n>")
         if len(bparmstr) > 0:
-            if (int(bparmstr) == 32): 
-                qasmfileinput = '32'
-                qubits_needed = 32
-                #parmlist = parmlist + ["-32"]
-            elif (int(bparmstr) == 16): 
+            if (int(bparmstr) == 16): 
                 qasmfileinput = '16'
                 qubits_needed = 16
                 #parmlist = parmlist + ["-16"]
@@ -903,47 +886,34 @@ if (len(sys.argv)>1):
                 qasmfileinput = '12'
                 qubits_needed = 12
                 #parmlist = parmlist + ["-12"]
-            else:
-                qubits_needed = 5
-        else:
-            qubits_needed = 5
             # otherwise standard 5 qubit demo will be run so nothing needs to be set
         print("Number of qubits: ",qubits_needed)
         
         # Second question: display format. Depends on number of qubits needed
-        if qubits_needed < 32: # if we need 32 qubits only one display mode works
-            dispmode="q32"
-            if qubits_needed > 12:
-                bparmstr=input("Which display format would you prefer? (Extra display qubits do not impact simulation\n 1: 16-qubit rows, 2: 32-qubit grid (default is rows)\n>")
-                if len(bparmstr)>0 :
-                    try: selector=int(bparmstr)
-                    except: selector=0
-                    if ("16" in bparmstr or "rows" in bparmstr or selector == 1):   dispmode = "q16"
-                    else:															dispmode = "q32"
-                else:                                                               dispmode = "q32"
-            elif qubits_needed >5:    
-                dispmode="hex"
-                bparmstr=input("Which display format would you prefer? (Extra display qubits do not impact simulation\n 1: 12-qubit hex, 2: 16-qubit rows, 3: 32-qubit grid (default is hex)\n>")
-                if len(bparmstr)>0 :
-                    try: selector=int(bparmstr)
-                    except: selector=0
-                    if ("32" in bparmstr or "grid" in bparmstr or selector == 3):   dispmode = "q32"
-                    if ("16" in bparmstr or "rows" in bparmstr or selector == 2):   dispmode = "q16"
-                    else:															dispmode = "hex"
-            else:#                                                               dispmode = "hex"
-                dispmode="-tee"
-                bparmstr=input("\nWhich display format would you prefer? (Extra display qubits do not impact simulation\n1: 5-qubit tee, 2: 5-qubit bowtie, 3: 12-qubit hex, 4: 16-qubit rows, 5: 32-qubit grid (default is tee)\n>")
+        if qubits_needed<16:    # if we need 16 qubits only one display mode works
+            dispmode="tee"
+            if qubits_needed == 5:
+                bparmstr=input("\nWhich display format would you prefer? (Extra display qubits do not impact simulation\n1: 5-qubit tee, 2: 5-qubit bowtie, 3: 12-qubit hex, 4: 16-qubit rows (default is tee)\n>")
                 if len(bparmstr) > 0:
                     try: selector=int(bparmstr)
                     except: selector=0
-                    if   ("32" in bparmstr or "grid" in bparmstr or selector == 5):   dispmode = "q32"
-                    elif ("16" in bparmstr or "rows" in bparmstr or selector == 4):   dispmode = "q16"
+                    if   ("16" in bparmstr or "rows" in bparmstr or selector == 4):   dispmode = "q16"
                     elif ("12" in bparmstr or "hex"  in bparmstr or selector == 3):  dispmode = "hex"
                     elif ("bow" in bparmstr or "tie" in bparmstr or selector == 2): dispmode = "bow"
-                    else: 															
-                        dispmode="-tee"
-                        UseTee = True
-        else:                                                                       dispmode = "q32"
+                    else: 															dispmode="-tee"
+                else: 
+                    dispmode = "-tee"
+                    UseTee = True
+            else:
+                bparmstr=input("Which display format would you prefer? (Extra display qubits do not impact simulation\n 1: 12-qubit hex, 2: 16-qubit rows (default is hex)\n>")
+                if len(bparmstr)>0 :
+                    try: selector=int(bparmstr)
+                    except: selector=0
+                    if ("16" in bparmstr or "rows" in bparmstr or selector == 2):   dispmode = "q16"
+                    else:															dispmode = "hex"
+                else:                                                               dispmode = "hex"
+                
+        else:                                                                       dispmode = "q16"
         print("Display mode selected: ",dispmode)
         parmlist = parmlist + [dispmode]
         
@@ -954,7 +924,6 @@ if (len(sys.argv)>1):
                  "Running on a real backend may take some time to complete and will only run a single job of the quantum circuit\n\n"
                  "Do you wish to 1: run a local simulator or 2: connect to a real backend? (default: local)\n>" )
         bparmstr=input(tempstr)
-        print ("Selecting backend for ",qubits_needed," on display ",dispmode)
         if len(bparmstr)>0 :
             try: selector=int(bparmstr)
             except: selector=0
@@ -992,16 +961,7 @@ if (len(sys.argv)>1):
                         if (selector == 2  or "real" in bparmstr)     : parmlist = parmlist + ["-b:aernoise"]
                         else									  	  : parmlist = parmlist + ["-b:aer"]
                     else:                                               parmlist = parmlist + ["-b:aer"]
-        #Fourth Question: how many shots per run?
-        print ("Default job setting is ",num_shots," per execution")
-        tempstr=("\nHow many shots (0-1024) do you want to use per job execution?\n"
-                 "Hit enter for default setting\n>")
-        bparmstr = input(tempstr) 
-        if len(bparmstr)>0:
-            try: selector=int(bparmstr)
-            except: selector=0
-            if (selector >0 and selector <1025): num_shots = selector
-            
+                    
         parms = parmlist    # We have now built a new parmlist, and pass it to the parms variable used in the setup stage of the program
     else: parms = parmlist  # If we *didn't* have an interactive section, we this passes the original parms list to the parms variable
     print("all parms:",parms)
@@ -1014,7 +974,6 @@ if (len(sys.argv)>1):
         if type(parameter) is str:
             print("Parameter ",p," ",parameter)
             if 'debug' in parameter: debug = True
-            if ('32' == parameter or "-32" == parameter): qasmfileinput='32'
             if ('16' == parameter or "-16" == parameter): qasmfileinput='16'
             if ('12' == parameter or "-12" == parameter): qasmfileinput='12'
             if '-local' in parameter: UseLocal = True      # use the aer local simulator instead of the web API
@@ -1195,7 +1154,7 @@ showlogo=False
 
 if not NoHat and not SenseHatEMU: orient()
 
-display=ibm_qx32    
+display=ibm_qx16    
 if not NoHat: hat.set_pixels(Arrow)
 if UseNeo: 
     display_to_LEDs(Arrow, LED_array_indices)
@@ -1213,7 +1172,6 @@ if DualDisplay and not NoHat: hat2.set_pixels(Arrow)
 scriptfolder = os.path.dirname(os.path.realpath("__file__"))
 if ('16' in  qasmfileinput):    qasmfilename='expt16.qasm' 
 elif ('12' in qasmfileinput):    qasmfilename='expt12.qasm' 
-elif ('32' in qasmfileinput):    qasmfilename='expt32.qasm'
 else: qasmfilename = qasmfileinput
   #qasmfilename='expt.qasm'
 print("QASM File:",qasmfilename)
@@ -1272,18 +1230,10 @@ except UnicodeEncodeError:
 except:
     print ('Unable to render quantum circuit drawing for some reason')
     
-if qubits_needed >16 or UseQ32:
-    display= ibm_qx32
-    maxpattern='00000000000000000000000000000000'
-    print ("circuit width: ",qubits_needed," using 32 qubit display")
-elif (qubits_needed > 12 and not UseQ32) or UseQ16:
+if (qubits_needed > 5 and not UseHex) or UseQ16:
     display = ibm_qx16
     maxpattern='0000000000000000'
     print ("circuit width: ",qubits_needed," using 16 qubit display")
-elif (qubits_needed > 5 and not UseQ16) or UseHex:
-    display = ibm_qhex
-    maxpattern='000000000000'
-    print ("circuit width: ",qubits_needed," using 12 qubit hex display")
 else:
     if (UseTee and qubits_needed <= 5 ): 
         display = ibm_qx5t
@@ -1350,7 +1300,7 @@ while Looping:
                         print ('Unable to render quantum circuit drawing for some reason')
                    try:
                         qk1_circ=transpile(qcirc, Q) # transpile for the new primitive
-                   except :
+                   except:
                         print("problem transpiling circuit")
                    else:
                         print("transpilation complete")                    
@@ -1360,8 +1310,8 @@ while Looping:
                         else:
                             print("backend: ",Q.name," operational? ALWAYS")
                         if debug: input('Press the Enter Key')
-                        print("running job with ",num_shots," shots")                       
-                        qjob=Q.run(qk1_circ, shots=num_shots) # run 
+                        print("running job")                       
+                        qjob=Q.run(qk1_circ) # run 
                         print("JobID: ",qjob.job_id())
                         print("Job Done?",qjob.done())
 						# This next line should prevent running the job more than once on a real backend because UseLocal will be false.
@@ -1372,7 +1322,7 @@ while Looping:
                         running_timeout = False
                         running_cancelled = False
                         showlogo =  False
-                        resuqdone = False
+                        qdone = False
                         while not (qdone or running_timeout or running_cancelled):
                             qdone = qjob.in_final_state() or qjob.cancelled()
                             if not UseLocal:

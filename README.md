@@ -2,6 +2,15 @@
 <img src='New Logo Screen.png' width='150' alt='display while waiting for results' style='float:right;'><br/> 
 Your Raspberry Pi running code on the IBM Quantum platform processors or simulators via Python 3 -- with results displayed courtesy of the 8x8 LED array on a SenseHat (or SenseHat emulator)!
 
+## April 2026 Updates
+
+- the code now supports a 32-qubit display and adds a expt32.qasm file in the folder
+
+- best way to try it is via the -int parameter
+
+- note that noisy simulation of 32 qubits may run out of memory
+
+
 ## January 2025 updates
 
 - The code now supports a NeoPixel array display as used on the Rasqberry Two project, using IO10 on the Raspberry pi.
