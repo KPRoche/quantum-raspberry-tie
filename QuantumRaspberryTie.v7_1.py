@@ -748,7 +748,7 @@ def StartQuantumService():
             backendparm = 'aer_model'
         else:   #basic aer simulator does not need to connect to provider
             UseLocal = True
-            from qiskit_aer import qasm_simulator as AerSimulator
+            from qiskit_aer import AerSimulator
             print("creating basic Aer Simulator")
             Q = AerSimulator(method='matrix_product_state')    
             
